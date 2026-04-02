@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -65,7 +66,7 @@ public class UserController {
         }
     }
 
-    @Operation(summary = "로그아웃", description = "로그아웃을 진행, 쿠키에 담긴 jwt 토큰을 삭제합니다.")
+    @Operation(summary = "로그아웃", description = "로그아웃을 진행, 쿠키에 담긴 jwt 토큰을 삭제합니다.", security = @SecurityRequirement(name = "accessToken"))
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "로그아웃 성공"),
             @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content()),
@@ -108,7 +109,7 @@ public class UserController {
     }
 
 
-    @Operation(summary = "로그인 유저 정보조회", description = "로그인한 유저의 정보를 조회한다.")
+    @Operation(summary = "로그인 유저 정보조회", description = "로그인한 유저의 정보를 조회한다.", security = @SecurityRequirement(name = "accessToken"))
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "성공"),
             @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content()),
@@ -116,7 +117,7 @@ public class UserController {
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content())
     })
     @GetMapping
-    public ResponseEntity<UserDetails> getUserDetail(@AuthenticationPrincipal CustomUserDetails userDetail){
+    public ResponseEntity<UserDetails> getUserDetail(@AuthenticationPrincipal CustomUserDetails userDetail) {
         String email = userDetail.getUsername();
 
         UserDetails userDetails = userService.getUserDetail(email);
@@ -143,7 +144,7 @@ public class UserController {
         return null;
     }
 
-    @Operation(summary = "로그인 유저 정보 수정", description = "로그인한 유저의 정보를 수정한다.")
+    @Operation(summary = "로그인 유저 정보 수정", description = "로그인한 유저의 정보를 수정한다.", security = @SecurityRequirement(name = "accessToken"))
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "성공"),
             @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content()),
@@ -155,7 +156,7 @@ public class UserController {
         return ResponseEntity.ok().body(userService.updateUser(user));
     }
 
-    @Operation(summary = "로그인 상태 비밀번호 변경", description = "유저의 비밀번호를 변경한다.")
+    @Operation(summary = "로그인 상태 비밀번호 변경", description = "유저의 비밀번호를 변경한다.", security = @SecurityRequirement(name = "accessToken"))
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "성공, 응답 password 값 = null"),
             @ApiResponse(responseCode = "401", description = "실패, 응답 password 값 = 중복 or 불일치 ", content = @Content()),

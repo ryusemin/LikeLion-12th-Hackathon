@@ -82,35 +82,27 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         String role = auth.getAuthority();
 
-        String token = jwtUtil.createJwt(email, role);
+        String accessToken = jwtUtil.createJwt(email, role);
 
-//        //헤더에 토큰 값을 넣을 때.
-//        response.addHeader("Authorization", "Bearer " + token);
+        //헤더에 토큰 값을 넣을 때.
+        response.addHeader("Authorization", "Bearer " + accessToken);
 
-        Cookie cookie = new Cookie("token", token);
-        cookie.setMaxAge(60 * 60 * 24); // 유효기간 설정(초), 상대시간
-        cookie.setPath("/");
-        cookie.setSecure(false);
-        cookie.setHttpOnly(false);
-        response.addCookie(cookie); // 응답에 쿠키 추가
-            
-//        // 개발환경 토큰 임시 수정
-//        response.setHeader("Set-Cookie",
-//                "token=" + token + "; Max-Age=86400; Path=/; SameSite=Lax; HttpOnly=false");
+//        Cookie cookie = new Cookie("token", token);
+//        cookie.setMaxAge(60 * 60 * 24); // 유효기간 설정(초), 상대시간
+//        cookie.setPath("/");
+//        cookie.setSecure(false);
+//        cookie.setHttpOnly(false);
+//        response.addCookie(cookie); // 응답에 쿠키 추가
 
 
         // JSON 형태로 응답 바디에 담기
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-//        // 응답 Body에 담아 보낼 Key : Value
-//        String jsonResponse = String.format("{" +
-//                "\"token\": \"%s\", " +
-//                "\"email\": \"%s\", " +
-//                "\"role\": \"%s\"}",
-//                "Bearer " + token, email, role);
-        String jsonResponse = String.format("{" +
-                "\"isSuccess\": \"성공\"}");
+            String jsonResponse = String.format(
+                    "{\"isSuccess\": \"성공\", \"accessToken\": \"%s\"}",
+                    accessToken
+            );
 
         response.getWriter().write(jsonResponse);
         response.getWriter().flush();
