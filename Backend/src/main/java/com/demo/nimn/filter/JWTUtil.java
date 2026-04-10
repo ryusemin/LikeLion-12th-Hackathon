@@ -52,7 +52,7 @@ public class JWTUtil {
     }
 
 
-    public String createJwt(String email, String role) {
+    public String createAccessJwt(String email, String role) {
         long expiredMs = 60*60* 1000 * 1L; // 60 * 60 * 1000 * 1L == 1 시간
 
         Claims claims = Jwts.claims();
@@ -63,6 +63,20 @@ public class JWTUtil {
                 .setClaims(claims)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expiredMs))
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public String createRefreshJwt(String email) {
+        long refreshExpiredMs = 7 * 24 * 60 * 60 * 1000L; // 7일
+
+        Claims claims = Jwts.claims();
+        claims.put("email", email);
+
+        return Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + refreshExpiredMs))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }

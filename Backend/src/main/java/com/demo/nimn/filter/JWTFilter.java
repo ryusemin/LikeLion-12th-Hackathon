@@ -55,7 +55,7 @@ public class JWTFilter extends OncePerRequestFilter {
         }
 
         //Authorization 헤더 검증
-        if (token == null ) {
+        if (token == null) {
 
             filterChain.doFilter(request, response);
 
@@ -66,15 +66,14 @@ public class JWTFilter extends OncePerRequestFilter {
 
         //토큰 소멸 시간 검증
         if (jwtUtil.isExpired(token)) {
-
             // 쿠키 토큰 삭제 메소드
-//            for (Cookie cookie : request.getCookies()) {
-//                if (cookie.getName().equals("token")) {
-//                    cookie.setValue(null);
-//                    cookie.setMaxAge(0); // 브라우저에 삭제 요청
-//                    response.addCookie(cookie);
-//                }
-//            }
+            for (Cookie cookie : request.getCookies()) {
+                if (cookie.getName().equals("refreshToken")) {
+                    cookie.setValue(null);
+                    cookie.setMaxAge(0); // 브라우저에 삭제 요청
+                    response.addCookie(cookie);
+                }
+            }
             // 응답 코드 설정 + 메시지 전송
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
