@@ -5,12 +5,12 @@ import com.demo.nimn.dto.auth.UserDTO;
 import com.demo.nimn.dto.auth.UserDetails;
 import com.demo.nimn.dto.auth.UsersEmailDTO;
 import com.demo.nimn.entity.auth.Users;
+import com.demo.nimn.filter.JWTUtil;
 import com.demo.nimn.repository.auth.UserRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
-import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,11 +21,15 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final RefreshTokenService refreshTokenService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final JWTUtil jwtUtil;
 
-    public UserServiceImpl(BCryptPasswordEncoder bCryptPasswordEncoder, @Autowired UserRepository userRepository) {
+    public UserServiceImpl(BCryptPasswordEncoder bCryptPasswordEncoder, @Autowired UserRepository userRepository, RefreshTokenService refreshTokenService, JWTUtil jwtUtil) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.refreshTokenService = refreshTokenService;
+        this.jwtUtil = jwtUtil;
     }
 
     @Override
@@ -69,12 +73,28 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean userLogout(HttpServletRequest request, HttpServletResponse response) {
         Cookie[] cookies = request.getCookies();
+
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if ("token".equals(cookie.getName())) {
+
+                // 🔥 refresh token 쿠키 이름 확인 (token → refreshToken 추천)
+                if ("refreshToken".equals(cookie.getName())) {
+
+                    String refreshToken = cookie.getValue();
+
+                    if (refreshToken != null) {
+
+                        // ✅ JWT에서 email 추출
+                        String email = jwtUtil.getUsername(refreshToken);
+
+                        // ✅ Redis 삭제
+                        refreshTokenService.deleteRefreshToken(email);
+                    }
+
+                    // 쿠키 삭제
                     cookie.setValue(null);
                     cookie.setPath("/");
-                    cookie.setMaxAge(0); // 브라우저에 삭제 요청
+                    cookie.setMaxAge(0);
                     response.addCookie(cookie);
                 }
             }
@@ -89,7 +109,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDetails getUserDetail(String email) {
-        Users user = userRepository.findByEmail(email);
+        Users user = findUserByEmail(email);
 
         if (user == null) {
             // null이면 빈 UserDetails 리턴하거나 메시지를 포함한 기본 객체 반환
@@ -113,7 +133,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDetails updateUser(UserDetails user) {
-        Users userEntity = userRepository.findByEmail(user.getEmail());
+        Users userEntity = findUserByEmail(user.getEmail());
 
         userEntity.updateUser(user);
         userRepository.save(userEntity);
@@ -137,8 +157,8 @@ public class UserServiceImpl implements UserService {
         }
 
         // oldPassword가 일치함
-        if(bCryptPasswordEncoder.matches(oldPassword, userEntity.getPassword())){
-            if(bCryptPasswordEncoder.matches(newPassword, userEntity.getPassword())){
+        if(isPasswordMatch(oldPassword, userEntity.getPassword())){
+            if(isPasswordMatch(newPassword, userEntity.getPassword())){
                 user = user.toBuilder()
                         .password("중복")
                         .build();
@@ -171,7 +191,7 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("사용자를 찾을 수 없습니다.");
         }
 
-        if(bCryptPasswordEncoder.matches(newPassword, userEntity.getPassword())){
+        if(isPasswordMatch(newPassword, userEntity.getPassword())){
             user = user.toBuilder()
                     .password("중복")
                     .build();
@@ -195,6 +215,18 @@ public class UserServiceImpl implements UserService {
         return UsersEmailDTO.builder()
                 .email(emails)
                 .build();
+    }
+
+    private Users findUserByEmail(String email) {
+        Users user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new RuntimeException("사용자를 찾을 수 없습니다.");
+        }
+        return user;
+    }
+
+    private boolean isPasswordMatch(String raw, String encoded) {
+        return bCryptPasswordEncoder.matches(raw, encoded);
     }
 
 }
