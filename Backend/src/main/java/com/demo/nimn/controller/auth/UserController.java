@@ -17,7 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name="유저 API", description = "로그인 및 유저 정보 관리")
+@Tag(name="유저 API", description = "유저 정보 관리")
 @RestController
 @RequestMapping(value = "/users")
 public class UserController {
@@ -27,17 +27,6 @@ public class UserController {
     @Autowired
     public UserController (UserService userService){
         this.userService = userService;
-    }
-
-    @Operation(summary = "로그인", description = "로그인에 성공하면 응답 Cookie에 jwt를 포함")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "성공"),
-            @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content()),
-            @ApiResponse(responseCode = "403", description = "로그인 실패", content = @Content()),
-            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content())
-    })
-    @PostMapping("/login")
-    public void login (@RequestBody UserDTO userDTO) {
     }
 
     @Operation(summary = "회원가입", description = "회원가입을 진행합니다")
@@ -66,39 +55,6 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body("Service Unavailable: " + e.getMessage());
         }
     }
-
-    @Operation(summary = "로그아웃", description = "로그아웃을 진행, 쿠키에 담긴 jwt 토큰을 삭제합니다.", security = @SecurityRequirement(name = "accessToken"))
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "로그아웃 성공"),
-            @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content()),
-            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content())
-    })
-    @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
-        String refreshToken = null;
-
-        // 쿠키에서 꺼내기
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if ("refreshToken".equals(cookie.getName())) {
-                    refreshToken = cookie.getValue();
-                }
-            }
-        }
-
-        // 서비스 호출
-        userService.userLogout(refreshToken);
-
-        // 쿠키 삭제
-        Cookie cookie = new Cookie("refreshToken", null);
-        cookie.setMaxAge(0);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        response.addCookie(cookie);
-
-        return ResponseEntity.ok().build();
-    }
-
 
     @Operation(summary = "이메일 존재 여부 조회", description = "해당 이메일의 존재 여부를 boolean 타입으로 확인")
     @ApiResponses(value = {

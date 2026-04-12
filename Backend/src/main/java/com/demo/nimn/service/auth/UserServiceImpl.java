@@ -7,9 +7,6 @@ import com.demo.nimn.dto.auth.UsersEmailDTO;
 import com.demo.nimn.entity.auth.Users;
 import com.demo.nimn.filter.JWTUtil;
 import com.demo.nimn.repository.auth.UserRepository;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -68,20 +65,6 @@ public class UserServiceImpl implements UserService {
                 .roadAddress(userDetails.getRoadAddress())
                 .detailAddress(userDetails.getDetailAddress())
                 .build();
-    }
-
-    @Override
-    public void userLogout(String refreshToken) {
-
-        if (refreshToken == null) {
-            throw new RuntimeException("Refresh token 없음");
-        }
-
-        // 🔥 email 기반 구조니까 email 추출 필요
-        String email = jwtUtil.getUsername(refreshToken);
-
-        // Redis 삭제
-        refreshTokenService.deleteRefreshToken(email);
     }
 
     public boolean existsByEmail(String email){

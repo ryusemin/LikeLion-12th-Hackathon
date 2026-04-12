@@ -41,7 +41,7 @@ public class SecurityConfigProd {
         LoginFilter loginFilter = new LoginFilter(
                 authenticationManager,
                 jwtUtil,
-                "/api/users/login",
+                "/api/auth/login",
                 refreshTokenService // 🔥 여기 추가
         );
 

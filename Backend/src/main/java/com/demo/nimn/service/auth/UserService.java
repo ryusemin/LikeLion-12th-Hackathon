@@ -12,8 +12,6 @@ public interface UserService {
 
     public UserDetails userSignup(UserDetails userDetails);
 
-    public void userLogout(String refreshToken);
-
     public boolean existsByEmail(String email);
 
     public UserDetails getUserDetail(String email);
