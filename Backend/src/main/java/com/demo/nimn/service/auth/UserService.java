@@ -12,7 +12,7 @@ public interface UserService {
 
     public UserDetails userSignup(UserDetails userDetails);
 
-    public boolean userLogout(HttpServletRequest request, HttpServletResponse response);
+    public void userLogout(String refreshToken);
 
     public boolean existsByEmail(String email);
 

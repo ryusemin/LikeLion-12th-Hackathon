@@ -98,8 +98,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
             // 클라이언트에 전달
             Cookie cookie = new Cookie("refreshToken", refreshToken);
             cookie.setHttpOnly(true);
-            cookie.setSecure(true); // HTTPS 환경
-            cookie.setPath("/api/token/refresh");
+            cookie.setSecure(false);
+            cookie.setPath("/");
             cookie.setMaxAge(7 * 24 * 60 * 60); // 7일
             response.addCookie(cookie);
 

@@ -71,36 +71,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean userLogout(HttpServletRequest request, HttpServletResponse response) {
-        Cookie[] cookies = request.getCookies();
+    public void userLogout(String refreshToken) {
 
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-
-                // 🔥 refresh token 쿠키 이름 확인 (token → refreshToken 추천)
-                if ("refreshToken".equals(cookie.getName())) {
-
-                    String refreshToken = cookie.getValue();
-
-                    if (refreshToken != null) {
-
-                        // ✅ JWT에서 email 추출
-                        String email = jwtUtil.getUsername(refreshToken);
-
-                        // ✅ Redis 삭제
-                        refreshTokenService.deleteRefreshToken(email);
-                    }
-
-                    // 쿠키 삭제
-                    cookie.setValue(null);
-                    cookie.setPath("/");
-                    cookie.setMaxAge(0);
-                    response.addCookie(cookie);
-                }
-            }
-            return true;
+        if (refreshToken == null) {
+            throw new RuntimeException("Refresh token 없음");
         }
-        return false;
+
+        // 🔥 email 기반 구조니까 email 추출 필요
+        String email = jwtUtil.getUsername(refreshToken);
+
+        // Redis 삭제
+        refreshTokenService.deleteRefreshToken(email);
     }
 
     public boolean existsByEmail(String email){
