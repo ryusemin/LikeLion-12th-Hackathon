@@ -5,6 +5,9 @@ import com.demo.nimn.filter.JWTUtil;
 import com.demo.nimn.repository.auth.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 public class AuthServiceImpl implements AuthService{
 
@@ -58,5 +61,20 @@ public class AuthServiceImpl implements AuthService{
 
         // Redis 삭제
         refreshTokenService.deleteRefreshToken(email);
+    }
+
+    @Override
+    public Map<String, Object> loginSuccess(String email, String role) {
+
+        String accessToken = jwtUtil.createAccessJwt(email, role);
+        String refreshToken = jwtUtil.createRefreshJwt(email);
+
+        refreshTokenService.saveRefreshToken(email, refreshToken);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("accessToken", accessToken);
+        result.put("refreshToken", refreshToken);
+
+        return result;
     }
 }

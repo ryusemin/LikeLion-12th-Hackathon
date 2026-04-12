@@ -3,6 +3,7 @@ package com.demo.nimn.config.security;
 import com.demo.nimn.filter.JWTFilter;
 import com.demo.nimn.filter.JWTUtil;
 import com.demo.nimn.filter.LoginFilter;
+import com.demo.nimn.service.auth.AuthService;
 import com.demo.nimn.service.auth.RefreshTokenService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,12 +26,12 @@ public class SecurityConfigProd {
     private final JWTUtil jwtUtil;
     //AuthenticationManager가 인자로 받을 AuthenticationConfiguraion 객체 생성자 주입
     private final AuthenticationConfiguration authenticationConfiguration;
-    private final RefreshTokenService refreshTokenService;
+    private final AuthService authService;
 
-    public SecurityConfigProd(AuthenticationConfiguration authenticationConfiguration, JWTUtil jwtUtil, RefreshTokenService refreshTokenService) {
+    public SecurityConfigProd(AuthenticationConfiguration authenticationConfiguration, JWTUtil jwtUtil, AuthService authService) {
         this.authenticationConfiguration = authenticationConfiguration;
         this.jwtUtil = jwtUtil;
-        this.refreshTokenService = refreshTokenService;
+        this.authService = authService;
     }
 
 
@@ -42,7 +43,7 @@ public class SecurityConfigProd {
                 authenticationManager,
                 jwtUtil,
                 "/api/auth/login",
-                refreshTokenService // 🔥 여기 추가
+                authService
         );
 
         //csrf disable

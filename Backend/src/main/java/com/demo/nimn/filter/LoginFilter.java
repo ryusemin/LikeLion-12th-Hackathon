@@ -2,6 +2,7 @@ package com.demo.nimn.filter;
 
 import com.demo.nimn.dto.auth.CustomUserDetails;
 import com.demo.nimn.dto.auth.UserDTO;
+import com.demo.nimn.service.auth.AuthService;
 import com.demo.nimn.service.auth.RefreshTokenService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
@@ -27,13 +28,13 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final JWTUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final RefreshTokenService refreshTokenService;
+    private final AuthService authService;
 
     private UserDTO loginRequest;
 
-    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, String customLoginUrl, RefreshTokenService refreshTokenService) {
+    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, String customLoginUrl, AuthService authService) {
         this.authenticationManager = authenticationManager;
-        this.refreshTokenService = refreshTokenService;
+        this.authService = authService;
         this.jwtUtil = jwtUtil;
         setFilterProcessesUrl(customLoginUrl); // 커스텀 URL 경로 설정
     }
@@ -72,7 +73,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     //로그인 성공시 실행하는 메소드 (여기서 JWT를 발급하면 됨)
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) {
-        ObjectMapper objectMapper = new ObjectMapper();
         try {
             //UserDetailsS
             CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
@@ -85,11 +85,10 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
             String role = auth.getAuthority();
 
-            String accessToken = jwtUtil.createAccessJwt(email, role);
-            String refreshToken = jwtUtil.createRefreshJwt(email);
+            Map<String, Object> tokens = authService.loginSuccess(email, role);
 
-            // Redis에 RefreshToken 저장
-            refreshTokenService.saveRefreshToken(email, refreshToken);
+            String accessToken = (String) tokens.get("accessToken");
+            String refreshToken = (String) tokens.get("refreshToken");
 
             Map<String, Object> body = new HashMap<>();
             body.put("accessToken", accessToken);

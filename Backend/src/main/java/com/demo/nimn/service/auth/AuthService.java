@@ -1,7 +1,11 @@
 package com.demo.nimn.service.auth;
 
-public interface AuthService {
-    public String reissueAccessToken(String refreshToken);
+import java.util.Map;
 
-    public void userLogout(String refreshToken);
+public interface AuthService {
+    String reissueAccessToken(String refreshToken);
+
+    void userLogout(String refreshToken);
+
+    Map<String, Object> loginSuccess(String email, String role);
 }

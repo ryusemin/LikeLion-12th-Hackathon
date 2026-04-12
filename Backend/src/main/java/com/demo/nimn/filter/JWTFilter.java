@@ -36,16 +36,6 @@ public class JWTFilter extends OncePerRequestFilter {
         //request에서 Authorization 헤더를 찾음
         String token = null;
 
-        // 쿠키에서 토큰 가져오는 함수
-//        if (request.getCookies() != null) {
-//            for (Cookie cookie : request.getCookies()) {
-//                if (cookie.getName().equals("token")) {
-//                    token = cookie.getValue();
-//                    break;
-//                }
-//            }
-//        }
-
         // Authorization 헤더에서 토큰 추출
         String authorization = request.getHeader("Authorization");
         System.out.println("Authorization header: " + request.getHeader("Authorization"));
@@ -64,34 +54,18 @@ public class JWTFilter extends OncePerRequestFilter {
         }
 
 
-        //토큰 소멸 시간 검증
         if (jwtUtil.isExpired(token)) {
-            // 쿠키 토큰 삭제 메소드
-            for (Cookie cookie : request.getCookies()) {
-                if (cookie.getName().equals("refreshToken")) {
-                    cookie.setValue(null);
-                    cookie.setMaxAge(0); // 브라우저에 삭제 요청
-                    response.addCookie(cookie);
-                }
-            }
-            // 응답 코드 설정 + 메시지 전송
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            response.getWriter().write("{\"message\": \"토큰 소멸\"}");
-
-            return; // 더 이상 필터 체인 타지 않도록 종료
+            throw new RuntimeException("Access token expired");
         }
+
         //토큰에서 email과 role 획득
         String email = jwtUtil.getUsername(token);
         String role = jwtUtil.getRole(token);
 
         //userEntity를 생성하여 값 set
         Users userEntity = Users.builder()
-                .name("tempuser")
                 .email(email)
                 .role(role)
-                .password("temppassword")
                 .build();
 
         //UserDetails에 회원 정보 객체 담기
