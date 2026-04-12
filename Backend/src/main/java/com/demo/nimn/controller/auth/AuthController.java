@@ -1,5 +1,6 @@
 package com.demo.nimn.controller.auth;
 
+import com.demo.nimn.dto.auth.TokenResponse;
 import com.demo.nimn.dto.auth.UserDTO;
 import com.demo.nimn.service.auth.AuthService;
 import com.demo.nimn.service.auth.UserService;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.Map;
 
 
@@ -75,15 +77,25 @@ public class AuthController {
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content())
     })
     @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(HttpServletRequest request) {
+    public ResponseEntity<?> refresh(HttpServletRequest request, HttpServletResponse response) {
 
         String refreshToken = extractRefreshToken(request);
-        String newAccessToken = authService.reissueAccessToken(refreshToken);
 
-        return ResponseEntity.ok(Map.of(
-                "isSuccess", true,
-                "accessToken", newAccessToken
-        ));
+        TokenResponse tokenResponse = authService.reissueAccessToken(refreshToken);
+
+        // 🔥 refresh 쿠키 갱신 (중요)
+        Cookie cookie = new Cookie("refreshToken", tokenResponse.getRefreshToken());
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false); // 배포 시 true
+        cookie.setPath("/");
+        cookie.setMaxAge(7 * 24 * 60 * 60);
+        response.addCookie(cookie);
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("accessToken", tokenResponse.getAccessToken());
+        body.put("isSuccess", "성공");
+
+        return ResponseEntity.ok(body);
     }
 
     private String extractRefreshToken(HttpServletRequest request) {
