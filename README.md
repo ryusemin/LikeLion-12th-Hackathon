@@ -78,23 +78,20 @@
 ### 요구사항
 
 - Java 17
-- Spring: 3.5.0
-- Node.js: v23.9.0
-- npm: 10.9.2
+- Spring Boot: 3.5.0
+- Node.js: 24.x LTS (`Frontend/.nvmrc` 기준)
+- npm: 11.x
+- Docker Compose: 로컬 MySQL·Redis 실행 시 사용
 
 ### 설치 및 실행
 
-1. **Repository 클론**
-```bash
-git clone https://github.com/2-jjong/LikeLion-12th-Hackathon.git
-```
+환경변수 준비부터 로컬 DB·서버 실행, Windows·Linux 검증 명령은 [로컬 개발 환경 안내](docs/development.md)를 참고하세요.
 
-2. **프론트엔드 실행**
-```bash
-cd Frontend
-npm install
-npm start
-```
+- 백엔드: `Backend/nimn.env.example`을 참고해 로컬 설정과 JWT 키를 준비합니다.
+- 프론트엔드: Node 24.x·npm 11.x를 선택한 뒤 `Frontend/`에서 `npm ci`로 설치합니다.
+- 현재 프론트에는 운영 API 주소와 이전 인증 코드가 남아 있습니다. 전체 로컬 연동은 별도 확인이 필요합니다.
+- JDK 17·Node 24 기준 설치·테스트·빌드 결과와 범위는 [검증 기록](docs/verification.md)을 참고하세요.
+- PR CI와 Codex의 백엔드·프론트·전체 검증 버튼 설정은 [자동 검증 안내](docs/ci-and-actions.md)를 참고하세요.
 
 ## 6. 주요 기능
 

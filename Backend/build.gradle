@@ -41,6 +41,9 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+    // Context smoke tests use an isolated in-memory DB without Docker/MySQL.
+    testRuntimeOnly 'com.h2database:h2'
+
     // 아임포트 관련
     // https://mvnrepository.com/artifact/com.github.iamport/iamport-rest-client-java
     implementation group: 'com.github.iamport', name: 'iamport-rest-client-java', version: '0.2.22'
