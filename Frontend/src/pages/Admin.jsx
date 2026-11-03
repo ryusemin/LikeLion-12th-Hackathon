@@ -1,3 +1,4 @@
+import { apiUrl } from '../config/endpoints';
 import React, { useState, useEffect } from "react";
 import '../CSS/Admin.css';
 import { useNavigate } from 'react-router-dom';
@@ -111,7 +112,7 @@ function Admin() {
     }
     
     try {
-      const response = await fetch('https://nimn.store/api/users/logout', {
+      const response = await fetch(apiUrl('/api/users/logout'), {
         method: 'POST',
         credentials: 'include'
       });
@@ -141,7 +142,7 @@ function Admin() {
   // 관리자 정보 조회
   const fetchAdminInfo = async () => {
     try {
-      const response = await fetch('https://nimn.store/api/users', {
+      const response = await fetch(apiUrl('/api/users'), {
         method: 'GET',
         credentials: 'include'
       });
@@ -160,7 +161,7 @@ function Admin() {
   // 주문 목록 조회
   const fetchOrders = async () => {
     try {
-      const response = await fetch('https://nimn.store/api/payment/all', {
+      const response = await fetch(apiUrl('/api/payment/all'), {
         method: 'GET',
         credentials: 'include'
       });
@@ -191,7 +192,7 @@ function Admin() {
     if (!imagePath) return logo;
     
     try {
-      const response = await fetch(`https://nimn.store${imagePath}`, {
+      const response = await fetch(apiUrl(imagePath), {
         method: 'GET',
         credentials: 'include'
       });
@@ -211,7 +212,7 @@ function Admin() {
   // 식단 목록 조회 (이미지 없이)
   const fetchDietList = async () => {
     try {
-      const response = await fetch('https://nimn.store/api/foods/plans', {
+      const response = await fetch(apiUrl('/api/foods/plans'), {
         method: 'GET',
         credentials: 'include'
       });
@@ -264,7 +265,7 @@ function Admin() {
     setLoading(true);
     
     try {
-      const response = await fetch(`https://nimn.store/api/foods/food?price=${price}`, {
+      const response = await fetch(apiUrl(`/api/foods/food?price=${price}`), {
         method: 'POST',
         credentials: 'include'
       });

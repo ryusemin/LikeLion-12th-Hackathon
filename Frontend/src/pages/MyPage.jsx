@@ -1,3 +1,4 @@
+import { apiUrl } from '../config/endpoints';
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { Avatar } from 'antd';
@@ -18,7 +19,7 @@ function MyPage({ onLogoutSuccess }) {
 
     const handleLogout = async () => {
         try {
-            const response = await fetch('https://nimn.store/api/users/logout', {
+            const response = await fetch(apiUrl('/api/users/logout'), {
                 method: "POST",
                 credentials: 'include',
             });
@@ -59,7 +60,7 @@ function MyPage({ onLogoutSuccess }) {
     useEffect(() => {
         const handleget = async () => {
             try {
-                const response = await fetch('https://nimn.store/api/users', {
+                const response = await fetch(apiUrl('/api/users'), {
                     method: "GET",
                     credentials: 'include',
                 });

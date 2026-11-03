@@ -1,3 +1,4 @@
+import { apiUrl, appUrl } from '../config/endpoints';
 import { useLocation, useNavigate } from 'react-router-dom';
 import '../CSS/DietPaymentPage.css';
 
@@ -17,7 +18,7 @@ function DietPaymentPage() {
 
     const getUserEmail = async () => {
         try {
-            const response = await fetch('https://nimn.store/api/users', {
+            const response = await fetch(apiUrl('/api/users'), {
                 method: 'GET',
                 credentials: 'include'
             });
@@ -58,7 +59,7 @@ function DietPaymentPage() {
                 orderId: String(orderId)
             };
 
-            const paymentResponse = await fetch('https://nimn.store/api/payment', {
+            const paymentResponse = await fetch(apiUrl('/api/payment'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -121,7 +122,7 @@ function DietPaymentPage() {
                 const parsedMealData = JSON.parse(dailyDiets);
                 const transformedDailyDiets = transformMealDataToApiFormat(parsedMealData, userEmail);
 
-                const response = await fetch(`https://nimn.store/api/diet/weekly/create`, {
+                const response = await fetch(apiUrl(`/api/diet/weekly/create`), {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -155,7 +156,7 @@ function DietPaymentPage() {
             await handleCreatUserDiet();
 
             // 실제 유저 정보 가져오기
-            const userData = await fetch('https://nimn.store/api/users', {
+            const userData = await fetch(apiUrl('/api/users'), {
                 method: 'GET',
                 credentials: 'include'
             });
@@ -166,7 +167,7 @@ function DietPaymentPage() {
             
             const userInfo = await userData.json();
             
-            const orderResponse = await fetch('https://nimn.store/api/order', {
+            const orderResponse = await fetch(apiUrl('/api/order'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -204,7 +205,7 @@ function DietPaymentPage() {
                 buyer_tel: userInfo.phone_number,
                 buyer_addr: `${userInfo.road_address} ${userInfo.detail_address}`,
                 buyer_postcode: '123-456',
-                m_redirect_url: 'https://nimn.store/dietpaymentcomplete',
+                m_redirect_url: appUrl('/dietpaymentcomplete'),
             };
     
             IMP.request_pay(data, (response) => onVerification(response, orderId));
