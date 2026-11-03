@@ -83,6 +83,8 @@ $localEnvText = $localEnvText.Replace('JWT_SECRET=REPLACE_WITH_BASE64_32_BYTE_RA
 
 예제의 외부 연동값은 실제 서비스를 사용할 수 있는 값이 아니다. SMTP·AI 대체 서버는 자동 실행되지 않으며, 결제 SDK의 호출 대상도 로컬로 변경되지 않는다. 실제 메일·AI·결제 동작을 확인하려면 다음 단계에서 호출 대체 또는 명시적인 테스트 환경을 준비한다.
 
+`nimn.env.example`은 현재 실제 `nimn.env`의 필수 변수 이름 13개를 모두 포함하며, 실제 비밀값은 복사하지 않는다. 파일 이름이 `.env`가 아닌 `nimn.env`인 것은 `spring.config.import`가 이 이름을 읽도록 설정돼 있기 때문이다. 개인 설정 파일은 그대로 보존하고 예제만 공유한다. 배포에서는 `SPRING_PROFILES_ACTIVE=prod`와 배포 환경의 DB·Redis·JWT·외부 연동 설정을 사용한다.
+
 ## 3. 로컬 MySQL·Redis
 
 Docker Desktop의 엔진이 실행 중이어야 한다. `compose.yml`은 MySQL 3306, Redis 6379를 사용한다. 기존 서비스가 해당 포트를 사용 중이면 종료·삭제로 우회하지 말고 사용할 인프라와 연결 설정을 먼저 정한다.
@@ -146,19 +148,41 @@ npm.cmd run build
 
 Linux/CI에서는 `npm.cmd` 대신 `npm`을 사용한다. `npm run lint`로 오류를 별도 검증하며 경고는 표시한다. CI와 Codex 검증 Actions는 lint 통과 후 중복 ESLint 플러그인 검사 없이 빌드한다. 정확한 적용 범위는 [PR 검증과 Actions](ci-and-actions.md)를 참고한다.
 
-## 6. 로컬 프론트와 API 연결의 현재 한계
+## 6. 프론트 주소의 로컬·배포 환경 분리
 
-화면 실행 명령은 `Frontend/`에서 `npm.cmd start`다. 다만 현재 화면의 HTTP·WebSocket 요청 주소에는 `https://nimn.store`가 직접 들어 있다. **로컬 화면을 열어도 운영 서버에 요청할 수 있으며, 백엔드를 localhost로 실행하는 것만으로 연결 대상이 바뀌지 않는다.**
+| 실행 | 자동으로 읽는 파일 | API 기본 주소 | 프론트 기본 주소 |
+| --- | --- | --- | --- |
+| `npm.cmd start` | `Frontend/.env.development` | `http://127.0.0.1:8080` | `http://127.0.0.1:3000` |
+| `npm.cmd run build` | `Frontend/.env.production` | `https://nimn.store` | `https://nimn.store` |
+| `npm.cmd run test:ci` | `Frontend/.env.test` | 로컬 주소, 네트워크 대체 | 로컬 주소 |
 
-또한 프론트에는 이전 쿠키 기반 인증 코드가 남아 있고, 백엔드는 Access Token을 요청 헤더로 받는다. 로그인 경로의 `/api` 접두사도 운영 프록시 설정과 함께 확인해야 한다. 따라서 현재 단계를 완료해도 로컬 전체 로그인·결제 흐름이 연결된 상태는 아니다.
+`src/config/endpoints.js`가 다음 값을 읽으며, 실제 화면의 HTTP·이미지·WebSocket·결제 복귀 주소에서 함께 사용한다.
 
-아직 사용하지 않는 `REACT_APP_API_URL` 예제는 만들지 않는다. 다음 연동 작업에서 실제 HTTP·WebSocket 호출부를 로컬 설정으로 연결하고, 네트워크를 대체한 테스트부터 검증한다. 프론트 환경변수에 비밀키를 넣지 않는다. CRA의 환경변수는 빌드 결과에 포함된다.
+| 환경변수 | 의미 |
+| --- | --- |
+| `REACT_APP_API_BASE_URL` | 백엔드 기본 주소. **`/api`를 붙이지 않는다.** 호출부에 `/api/users` 등의 경로가 이미 있다. |
+| `REACT_APP_WS_URL` | SockJS 연결 주소 전체. 로컬은 `http://127.0.0.1:8080/ws/notification`, 배포는 `https://nimn.store/ws/notification`이다. SockJS이므로 `http(s)`를 사용한다. |
+| `REACT_APP_APP_BASE_URL` | 사용자가 접속하는 프론트 주소. 결제 완료 후 복귀 주소에 사용한다. |
+
+기본 파일에 로컬·배포 주소가 있으므로 복사 없이 실행할 수 있다. PC별 주소를 바꾸려면 다음과 같이 예제를 개인 개발 설정으로 복사한다. 기존 파일이 있으면 덮어쓰지 않는다.
+
+```powershell
+# 작업 위치: Frontend / Windows PowerShell
+if (Test-Path -LiteralPath .env.development.local) { throw '기존 개인 설정이 있습니다.' }
+Copy-Item -LiteralPath .env.example -Destination .env.development.local
+```
+
+배포 주소를 개인적으로 바꾸는 파일은 `.env.production.local`이며, CI에서는 동일한 `REACT_APP_*` 환경변수로 지정할 수도 있다. 개인 `.local` 파일은 Git에서 제외한다. 공통 `.env.local`은 개발·배포 양쪽에 영향을 줄 수 있으므로, 개발 주소를 바꿀 때는 `.env.development.local`을 사용한다.
+
+CRA가 주소를 빌드할 때 포함하므로 **개발 서버는 환경변수 변경 후 재시작**, 배포 주소 변경 후에는 **재빌드·재배포**해야 한다. 프론트 환경변수에는 비밀키를 넣지 않는다. 로컬에서는 쿠키의 사이트 구분이 달라지지 않도록 프론트와 API 모두 `127.0.0.1`로 접속한다.
+
+이번 작업은 주소만 분리한다. 이전 쿠키 기반 Access Token 처리, 이전 로그인·로그아웃 경로와 자동 재발급은 그대로여서 로그인 전체 연동은 후속 작업이다. 실제 결제·메일·AI 호출도 검증하지 않는다.
 
 ## 7. 검증 범위와 다음 작업
 
 1. 현재 검증 결과와 재현 명령은 [검증 기록](verification.md)에서 확인한다.
 2. PR 검증 CI와 Codex Actions의 설정·사용법은 [자동 검증 안내](ci-and-actions.md)에서 확인한다. Linux에서의 실제 실행은 원격 CI로 추가 확인한다.
 3. 실제 MySQL·Redis·Security 필터를 포함한 통합 검증은 별도로 추가한다.
-4. 로컬 API 주소와 인증 계약을 연결하는 변경은 별도 범위로 진행한다.
+4. 로컬 API 주소 분리는 완료했으며, 이전 인증 코드를 현재 백엔드 계약으로 연결하는 변경은 별도 범위로 진행한다.
 
 검증한 것은 의존성 설치·자동 테스트·컴파일·패키징이다. 서버 실행, 브라우저에서의 전체 연동, 실제 결제·메일·AI 호출의 성공까지 확인한 것은 아니다.

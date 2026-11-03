@@ -89,7 +89,7 @@
 
 - 백엔드: `Backend/nimn.env.example`을 참고해 로컬 설정과 JWT 키를 준비합니다.
 - 프론트엔드: Node 24.x·npm 11.x를 선택한 뒤 `Frontend/`에서 `npm ci`로 설치합니다.
-- 현재 프론트에는 운영 API 주소와 이전 인증 코드가 남아 있습니다. 전체 로컬 연동은 별도 확인이 필요합니다.
+- 프론트 API·이미지·WebSocket·결제 복귀 주소는 `.env.development`(로컬)와 `.env.production`(배포)으로 분리했습니다. 이전 인증 코드는 남아 있어 로그인 연동은 별도 작업이 필요합니다.
 - JDK 17·Node 24 기준 설치·테스트·빌드 결과와 범위는 [검증 기록](docs/verification.md)을 참고하세요.
 - PR CI와 Codex의 백엔드·프론트·전체 검증 버튼 설정은 [자동 검증 안내](docs/ci-and-actions.md)를 참고하세요.
 
