@@ -22,6 +22,8 @@
 
 ## 실행과 검증
 
+전체 Docker 실행은 루트 `compose.yaml`과 `docs/docker-development.md`를 사용한다. 컨테이너 내부에서도 브라우저 API 주소는 `127.0.0.1:8080`이다. 프론트 src/public만 마운트하고 호스트 node_modules는 마운트하지 않는다. 패키지·env 변경은 이미지 재빌드 또는 컨테이너 재생성이 필요하다.
+
 아래 명령은 `Frontend/` 디렉터리에서 실행한다. Node 24·npm 11에서 설치·테스트·빌드를 검증했으며, 환경과 남은 경고는 `../docs/verification.md`를 참고한다.
 
 | 목적 | Windows PowerShell | Linux / CI |

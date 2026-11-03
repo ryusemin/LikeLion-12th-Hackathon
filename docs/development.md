@@ -1,5 +1,9 @@
 # 로컬 개발 환경
 
+전체 서비스를 Docker로 실행하는 기본 경로는 [Docker 로컬 개발 안내](docker-development.md)다. 아래 JDK·Node·개별 DB 설정은 호스트에서 직접 실행하거나 개별 검증할 때 사용하는 대안이다.
+
+환경 파일은 용도별로 나뉜다. 루트 `.env.example`/`.env`는 Docker DB·JWT용, `Backend/nimn.env.example`/`nimn.env`는 호스트 백엔드용, `Frontend/.env.*`는 브라우저에 공개되는 프론트 주소용이다. 서로의 비밀값을 복사하지 않는다.
+
 ## 1. 실행 기준
 
 | 구성 | 프로젝트 기준 | 확인 위치 |
@@ -181,7 +185,7 @@ CRA가 주소를 빌드할 때 포함하므로 **개발 서버는 환경변수 �
 ## 7. 검증 범위와 다음 작업
 
 1. 현재 검증 결과와 재현 명령은 [검증 기록](verification.md)에서 확인한다.
-2. PR 검증 CI와 Codex Actions의 설정·사용법은 [자동 검증 안내](ci-and-actions.md)에서 확인한다. Linux에서의 실제 실행은 원격 CI로 추가 확인한다.
+2. PR 검증 CI와 Codex Actions의 설정·사용법은 [자동 검증 안내](ci-and-actions.md)에서 확인한다. Linux 컨테이너 검증은 수행했으며, 원격 CI 실행은 별도로 확인한다.
 3. 실제 MySQL·Redis·Security 필터를 포함한 통합 검증은 별도로 추가한다.
 4. 로컬 API 주소 분리는 완료했으며, 이전 인증 코드를 현재 백엔드 계약으로 연결하는 변경은 별도 범위로 진행한다.
 

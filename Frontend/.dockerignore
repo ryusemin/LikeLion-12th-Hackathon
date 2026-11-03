@@ -1,0 +1,9 @@
+# Windows node_modules와 개인 env가 이미지에 섞이지 않도록 필요한 파일만 허용합니다.
+**
+!package.json
+!package-lock.json
+!.env.test
+!src/
+!src/**
+!public/
+!public/**

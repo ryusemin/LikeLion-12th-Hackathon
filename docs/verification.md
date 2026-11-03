@@ -21,7 +21,7 @@
 | 프론트 빌드 | `Frontend`: `npm run build` | 성공, 기존 lint 경고 있음 |
 | 백엔드 테스트·JAR | `Backend`: `gradlew.bat test bootJar --no-daemon --console=plain` | 13개 통과, 실행 JAR 생성 |
 
-위 결과는 Windows 실행 결과다. Linux에서의 실제 실행 결과는 아직 없다. Gradle 테스트 보고서는 `Backend/build/reports/tests/test/index.html`, 결과 XML은 `Backend/build/test-results/test/`에서 확인할 수 있다. 생성물은 Git에서 제외한다.
+위 표는 최초 Windows 실행 결과다. Linux 컨테이너에서의 후속 검증은 아래 Docker 항목을 참고한다. 호스트 Gradle 테스트 보고서는 `Backend/build/reports/tests/test/index.html`, 결과 XML은 `Backend/build/test-results/test/`에서 확인할 수 있다. 생성물은 Git에서 제외한다.
 
 2026-11-02 브랜치 분리·커밋 직전 `scripts/verify.ps1 -Target All`을 다시 실행해 종료 코드 0을 확인했다. 백엔드 테스트·JAR 작업은 Gradle의 `UP-TO-DATE` 결과로 기존 검증 산출물을 재사용했고, 프론트 테스트 3개와 빌드는 다시 실행되어 통과했다. lint는 오류 0개·경고 32개다. 이번 테스트 실행에는 기존 act API deprecation 외에 Header 비동기 상태 갱신의 act 경고도 출력되어 후속 정리가 필요하다. 샌드박스 내 첫 실행은 Gradle 데몬 연결에 실패했으며 승인된 외부 실행에서 전체 검증을 마쳤다.
 
@@ -74,3 +74,13 @@
 - 백엔드 예제는 기존 `nimn.env`의 키 13개를 모두 포함하는지 값 출력 없이 비교했다. 원본 `nimn.env`는 수정하지 않았다.
 - 사용자 요청 범위에 따라 로그인·재발급·로그아웃 구현은 변경하지 않았다.
 - 개발 서버 재시작 후 `/`의 HTTP 200과 실제 번들의 로컬 API 주소 포함·운영 도메인 미포함을 확인했다. 배포 빌드는 운영 도메인 포함·로컬 API 주소 미포함을 확인했다. 실제 로그인·결제·메일·AI 요청은 실행하지 않았다.
+
+## 전체 Docker 개발 환경 (2026-11-03)
+
+- 루트 Compose로 frontend/backend/mysql/redis를 모두 실행했다. 네 서비스가 healthy이며, Windows의 이전 Node·Java 프로세스만 종료해 포트를 전환했다. Windows MySQL80과 이전 Redis 컨테이너는 유지한다.
+- Linux 이미지 빌드에서 기존 백엔드 테스트 14개(실패·스킵 0개)와 `bootJar`, 프론트 `lint` 및 테스트 6개가 통과했다. 프론트 기존 lint 경고 32개와 라이브러리 경고는 남아 있다.
+- 호스트에서 `/`(3000), `/docs`, `/api-docs`(8080) HTTP 200과 컨테이너 Redis PONG, Docker MySQL `nimn_docker` 접속을 확인했다.
+- MySQL·Redis 전용 볼륨 연결을 확인했다. Redis 검증용 키는 재시작 후 유지됐으며 확인 후 제거했다. 기존 DB 데이터 이관이나 전체 DB 복구 시험을 한 것은 아니다.
+- 프론트 소스에 임시 주석을 추가해 마운트·변경 감지·자동 재컴파일을 확인하고 원복했다. 브라우저의 전체 로그인 흐름이나 시각적 UI 검증은 아니다.
+- `.env` 생성·기존 파일 보존·난수 길이·Git 제외를 확인했다. 실제 비밀값은 빌드 컨텍스트에서 제외하며 출력하지 않았다.
+- Docker healthcheck는 포트/프로세스 기동 범위이며 인증·권한·결제 검증을 대신하지 않는다. 운영 배포와 실제 외부 연동은 변경하지 않았다.

@@ -35,7 +35,7 @@
 | 로컬 서버 실행 | `.\gradlew.bat bootRun` | `./gradlew bootRun` |
 
 - 설정 진입점은 `src/main/resources/application.properties`이며 `nimn.env`를 선택적으로 읽는다. `SPRING_PROFILES_ACTIVE`, DB·JWT·메일·외부 API 설정이 필요한지 확인한다.
-- 로컬 인프라 구성은 `compose.yml`을 참고한다. 기본 MySQL·Redis 포트는 3306·6379다. 실제 DB 대상과 포트 충돌을 확인한 뒤 실행한다.
+- 전체 로컬 실행은 저장소 루트 `compose.yaml`과 `docs/docker-development.md`를 우선 사용한다. Docker DB는 `nimn_docker`, PC 포트는 MySQL 3307·Redis 6380이며 컨테이너끼리는 mysql:3306·redis:6379로 연결한다. 기존 `Backend/compose.yml`은 인프라만 띄우는 이전 구성으로 PC 포트 3306·6379를 사용하므로 혼동하지 않는다.
 - 단위 테스트에서는 외부 호출을 대체한다. 통합 테스트는 로컬·테스트 DB와 Redis를 사용하고 실제 메일·결제·AI API를 호출하지 않도록 구성한다.
 - 컨텍스트 테스트는 `test` 프로필과 H2를 사용하고 `nimn.env`를 읽지 않는다. 외부 클라이언트·Redis 연결·스케줄 작업은 Mockito로 대체한다. MySQL·Redis 실제 연동이나 Security 필터까지 검증한 것으로 해석하지 않는다.
 - 배포 워크플로의 `build -x test`는 테스트 통과의 증거가 아니다. 변경한 보안·업무 로직의 검증은 따로 수행한다.

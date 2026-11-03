@@ -85,6 +85,13 @@
 
 ### 설치 및 실행
 
+프론트·백엔드·MySQL·Redis를 함께 실행하려면 Docker Desktop을 켜고 저장소 루트에서 다음 명령을 실행하세요. 상세 사용법은 [Docker 로컬 개발 안내](docs/docker-development.md)를 참고하세요.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/init-docker-env.ps1
+docker compose up -d --build --wait --wait-timeout 240
+```
+
 환경변수 준비부터 로컬 DB·서버 실행, Windows·Linux 검증 명령은 [로컬 개발 환경 안내](docs/development.md)를 참고하세요.
 
 - 백엔드: `Backend/nimn.env.example`을 참고해 로컬 설정과 JWT 키를 준비합니다.
