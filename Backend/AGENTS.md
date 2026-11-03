@@ -4,7 +4,7 @@
 
 ## 구조와 구현 기준
 
-- Java 17, Spring Boot 3.5.0, Gradle Wrapper를 사용한다. 의존성의 실제 선언은 `build.gradle`을 확인한다.
+- Java 17, Spring Boot 3.5.16, Gradle Wrapper를 사용한다. 의존성의 실제 선언은 `build.gradle`을 확인한다.
 - 기본 패키지는 `src/main/java/com/demo/nimn/`이다. `controller`, `service`, `repository`, `entity`, `dto` 안에서 도메인별로 코드를 나눈다.
 - 요청·응답은 DTO로 구분하고 Controller는 HTTP 처리를, Service는 업무 로직을, Repository는 DB 접근을 담당하게 한다. 필요한 객체는 생성자로 주입한다.
 - 여러 저장 작업의 일관성은 서비스의 트랜잭션 경계에서 검토한다. 외부 API·Redis 작업까지 DB 트랜잭션으로 원자성이 보장된다고 가정하지 않는다.

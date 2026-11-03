@@ -5,7 +5,7 @@
 | 구성 | 프로젝트 기준 | 확인 위치 |
 | --- | --- | --- |
 | Java | JDK 17 | `Backend/build.gradle`의 toolchain |
-| Spring Boot | 3.5.0 | `Backend/build.gradle` |
+| Spring Boot | 3.5.16 | `Backend/build.gradle` |
 | Gradle | Wrapper 8.14 | `Backend/gradle/wrapper/gradle-wrapper.properties` |
 | Node.js | 24.x LTS의 최신 패치 | `Frontend/.nvmrc` |
 | npm | 11.x | `Frontend/package.json`의 engines |
