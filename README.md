@@ -78,7 +78,7 @@
 ### 요구사항
 
 - Java 17
-- Spring Boot: 3.5.0
+- Spring Boot: 3.5.16
 - Node.js: 24.x LTS (`Frontend/.nvmrc` 기준)
 - npm: 11.x
 - Docker Compose: 로컬 MySQL·Redis 실행 시 사용

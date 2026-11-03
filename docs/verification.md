@@ -48,6 +48,17 @@
 
 ## 남은 제약
 
+### Swagger 명세 생성 오류 복구 (2026-11-02)
+
+- 기존 Spring Boot 3.5.0 + springdoc 2.2.0에서 `/api-docs` 요청이 500을 반환했다. 실제 MVC와 전역 예외 처리기를 포함하는 테스트에서 `ControllerAdviceBean(Object)`의 `NoSuchMethodError`로 재현했다.
+- Spring Boot를 3.5.16, springdoc을 2.10.0으로 맞췄다. [공식 호환표](https://springdoc.org/v2/#_what_is_the_compatibility_matrix_of_springdoc_openapi_with_spring_boot) 및 [springdoc 2.10.0 릴리스](https://github.com/springdoc/springdoc-openapi/releases/tag/v2.10.0)의 빌드 기준 조합이다. Java 17은 유지한다.
+- springdoc만 2.9.1 또는 2.10.0으로 올리고 Boot 3.5.0을 유지하면 정적 리소스 경로 결합에서 `PatternParseException`으로 컨텍스트 시작이 실패했다. Boot 패치 버전을 함께 맞춰 해결했다. 전역 경로 매칭 설정이나 예외 처리기를 우회하지 않았다.
+- `scripts/verify.ps1 -Target Backend` 종료 코드 0: 백엔드 테스트 14개와 `bootJar` 통과. 새 회귀 테스트는 `/api-docs`의 200 응답, OpenAPI 버전 및 `/users` 경로 생성을 확인한다.
+- MVC 회귀 테스트는 필터를 제외하므로 인증·인가 검증을 의미하지 않는다. 기존 H2·외부 연동 대체 범위도 동일하다.
+- 수정된 JAR를 로컬 MySQL의 `nimn_local`과 Redis를 사용하는 dev 프로필로 재시작했다. 실제 HTTP에서 `/api-docs`(OpenAPI 3.1.0, 경로 35개), `/api-docs/swagger-config`, `/docs`, `/swagger-ui/swagger-ui-bundle.js` 모두 200을 확인했다. dev 프로필의 명세에는 기존 설정에 따라 `/api` 접두사가 붙으며, test 프로필의 회귀 테스트 경로에는 붙지 않는다. 실제 업무 API나 브라우저의 Try it out을 호출한 검증은 아니다.
+
+### 공통 제약
+
 - H2의 MySQL 호환 모드는 실제 MySQL의 SQL·트랜잭션·동시성 검증을 대신하지 않는다. 실제 Redis TTL·Rotation 경쟁 조건과 함께 후속 통합 테스트가 필요하다.
 - 기존 lint 경고(미사용 변수, Hook 의존성, 이미지 alt 누락), Browserslist 데이터 경고, 일부 라이브러리·Gradle의 deprecated 경고가 남아 있다. 숨기거나 전체 업그레이드로 범위를 확대하지 않았다.
 - React Testing Library 13이 React 18.3에서 deprecated act API를 사용한다는 경고가 남는다. 테스트가 유발한 비동기 상태 갱신은 기다리도록 정리했다.

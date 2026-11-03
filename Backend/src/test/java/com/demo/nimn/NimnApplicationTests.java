@@ -7,15 +7,21 @@ import com.demo.nimn.service.notification.NotificationService;
 import com.siot.IamportRestClient.IamportClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.startsWith;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(properties = {
         "spring.profiles.active=test",
@@ -27,10 +33,14 @@ import static org.assertj.core.api.Assertions.assertThat;
         "spring.datasource.password="
 })
 @ActiveProfiles("test")
+@AutoConfigureMockMvc(addFilters = false)
 class NimnApplicationTests {
 
     @Autowired
     private DataSource dataSource;
+
+    @Autowired
+    private MockMvc mockMvc;
 
     @MockitoBean
     private RedisConnectionFactory redisConnectionFactory;
@@ -56,6 +66,16 @@ class NimnApplicationTests {
         try (Connection connection = dataSource.getConnection()) {
             assertThat(connection.getMetaData().getURL()).startsWith("jdbc:h2:mem:nimn-test");
         }
+    }
+
+    @Test
+    void openApiDocumentIsGeneratedWithTheGlobalExceptionHandler() throws Exception {
+        var result = mockMvc.perform(get("/api-docs")).andReturn();
+
+        assertThat(result.getResolvedException()).isNull();
+        status().isOk().match(result);
+        jsonPath("$.openapi", startsWith("3.")).match(result);
+        jsonPath("$.paths['/users']").exists().match(result);
     }
 
 }
