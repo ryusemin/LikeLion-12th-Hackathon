@@ -1,3 +1,4 @@
+import { apiUrl } from '../config/endpoints';
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
 import '../CSS/DietSelectionPage.css';
@@ -93,7 +94,7 @@ function DietSelectionPage() {
         if (!imageId) return logo;
         
         // 숫자 ID로 이미지 URL 생성
-        return `https://nimn.store/api/image/${imageId}`;
+        return apiUrl(`/api/image/${imageId}`);
     };
 
     const transformApiData = (apiData) => {
@@ -162,7 +163,7 @@ function DietSelectionPage() {
             setError(null);
 
             try {
-                const response = await fetch('https://nimn.store/api/foods/plans/weekly', {
+                const response = await fetch(apiUrl('/api/foods/plans/weekly'), {
                     method: "GET",
                     headers: {
                         "accept": "application/json",

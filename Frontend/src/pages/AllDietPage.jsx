@@ -1,3 +1,4 @@
+import { apiUrl } from '../config/endpoints';
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LeftOutlined, RightOutlined, StarFilled } from '@ant-design/icons';
@@ -20,7 +21,7 @@ function AllDietPage() {
     // 음식 목록 조회 API
     const getAllFoodsAPI = async () => {
         try {
-            const response = await fetch('https://nimn.store/api/foods/plans', {
+            const response = await fetch(apiUrl('/api/foods/plans'), {
                 method: "GET",
                 credentials: 'include',
             });
@@ -39,7 +40,7 @@ function AllDietPage() {
     // 전체 리뷰 조회 API (summary가 전체 조회)
     const getAllReviewsAPI = async () => {
         try {
-            const response = await fetch('https://nimn.store/api/review/summary', {
+            const response = await fetch(apiUrl('/api/review/summary'), {
                 method: "GET",
                 credentials: 'include',
             });
@@ -59,7 +60,7 @@ function AllDietPage() {
     // 이미지 URL 생성 함수
     const getImageUrl = (imageId) => {
         if (!imageId) return logo;
-        return `https://nimn.store${imageId}`;
+        return apiUrl(imageId);
     };
 
     // 영양 정보 포맷팅 함수

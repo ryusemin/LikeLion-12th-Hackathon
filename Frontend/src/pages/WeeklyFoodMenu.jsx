@@ -1,3 +1,4 @@
+import { apiUrl } from '../config/endpoints';
 import React, { useState, useEffect } from 'react';
 import '../CSS/WeeklyFoodMenu.css';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -34,7 +35,7 @@ const WeeklyFoodMenu = () => {
 
       try {
         // 1단계: 유저 정보 조회
-        const userResponse = await fetch('https://nimn.store/api/users', {
+        const userResponse = await fetch(apiUrl('/api/users'), {
           method: 'GET',
           credentials: 'include'
         });
@@ -47,7 +48,7 @@ const WeeklyFoodMenu = () => {
         const userEmail = userData.email;
 
         // 2단계: 유저의 일주일 식단 조회
-        const dietResponse = await fetch(`https://nimn.store/api/diet/weekly/read/${userEmail}`, {
+        const dietResponse = await fetch(apiUrl(`/api/diet/weekly/read/${userEmail}`), {
           method: 'GET',
           credentials: 'include'
         });

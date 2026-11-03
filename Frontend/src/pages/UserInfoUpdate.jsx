@@ -1,3 +1,4 @@
+import { apiUrl } from '../config/endpoints';
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import Modal from "react-modal";
@@ -71,7 +72,7 @@ function UserInfoUpdate() {
     // 정보 수정 API
     const handlePUT = async () => {
         try {
-            const response = await fetch('https://nimn.store/api/users', {
+            const response = await fetch(apiUrl('/api/users'), {
                 method: "PUT",
                 headers: {
                     'Content-Type': 'application/json',
@@ -103,7 +104,7 @@ function UserInfoUpdate() {
     useEffect(() => {
         const handleget = async () => {
             try {
-                const response = await fetch('https://nimn.store/api/users', {
+                const response = await fetch(apiUrl('/api/users'), {
                     method: "GET",
                     credentials: 'include' // 쿠키 인증
                 });

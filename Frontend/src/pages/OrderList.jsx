@@ -1,3 +1,4 @@
+import { apiUrl } from '../config/endpoints';
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import '../CSS/OrderList.css';
@@ -14,7 +15,7 @@ function OrderList() {
     useEffect(() => {
         const handleGetUser = async () => {
             try {
-                const response = await fetch('https://nimn.store/api/users', {
+                const response = await fetch(apiUrl('/api/users'), {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -58,7 +59,7 @@ function OrderList() {
     useEffect(() => {
         const handlePaymentGet = async () => {
             try {
-                const response = await fetch(`https://nimn.store/api/payment?purchaser=${userEmail}`, {
+                const response = await fetch(apiUrl(`/api/payment?purchaser=${userEmail}`), {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',

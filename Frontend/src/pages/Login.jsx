@@ -1,3 +1,4 @@
+import { apiUrl } from '../config/endpoints';
 import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import '../CSS/Login.css';
@@ -34,7 +35,7 @@ function Login({ onLoginSuccess }) {
         }
 
         try {
-            const response = await fetch('https://nimn.store/api/users/login', {
+            const response = await fetch(apiUrl('/api/users/login'), {
                 method: "POST",
                 credentials: "include",
                 headers: {
@@ -54,7 +55,7 @@ function Login({ onLoginSuccess }) {
 
 
                 try {
-                    const userResponse = await fetch('https://nimn.store/api/users', {
+                    const userResponse = await fetch(apiUrl('/api/users'), {
                         method: 'GET',
                         credentials: 'include'
                     });
