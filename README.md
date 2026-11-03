@@ -1,5 +1,7 @@
 <h1 align="center">우리동네영양사</h1>
 
+개발 환경과 실행은 [개발 안내](docs/development.md)·[Docker 실행](docs/docker-development.md), 작업 완료 기준과 검증 명령은 [검증 절차](docs/verification-workflow.md)를 참고합니다.
+
 <p align="center">
   <img width="200px;" src="Frontend/src/images/logo.png" alt="로고"/>
 </p>

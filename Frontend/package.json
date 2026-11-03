@@ -43,7 +43,8 @@
     "test": "react-scripts test",
     "test:ci": "react-scripts test --watchAll=false --runInBand",
     "lint": "eslint src --ext .js,.jsx",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "test:e2e": "playwright test"
   },
   "eslintConfig": {
     "extends": [
@@ -74,6 +75,7 @@
     ]
   },
   "devDependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@playwright/test": "^1.64.1"
   }
 }

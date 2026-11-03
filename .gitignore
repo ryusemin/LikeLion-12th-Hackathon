@@ -509,3 +509,5 @@ $RECYCLE.BIN/
 
 # Project-local runtimes and dependency caches used for verification
 /.local-tools/
+/Frontend/playwright-report/
+/Frontend/test-results/

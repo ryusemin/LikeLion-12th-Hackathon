@@ -21,3 +21,15 @@ name = "전체 검증"
 icon = "test"
 command = "powershell -NoProfile -File scripts/verify.ps1 -Target All"
 platform = "win32"
+
+[[actions]]
+name = "브라우저 검증"
+icon = "test"
+command = "powershell -NoProfile -File scripts/verify.ps1 -Target Browser"
+platform = "win32"
+
+[[actions]]
+name = "Docker 실행 상태 검증"
+icon = "test"
+command = "powershell -NoProfile -File scripts/verify.ps1 -Target Runtime"
+platform = "win32"

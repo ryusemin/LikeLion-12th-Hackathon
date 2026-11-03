@@ -31,6 +31,7 @@
 | lockfile 기준 설치 | `npm.cmd ci` | `npm ci` |
 | 개발 서버 | `npm.cmd start` | `npm start` |
 | 테스트 일회 실행 | `npm.cmd run test:ci` | `npm run test:ci` |
+| 브라우저 화면 검사 | `npm.cmd run test:e2e` | `npm run test:e2e` |
 | Lint | `npm.cmd run lint` | `npm run lint` |
 | 빌드 | `npm.cmd run build` | `npm run build` |
 
@@ -40,3 +41,4 @@
 - npm과 기존 `package-lock.json`을 사용한다. 관련 없는 의존성 업그레이드나 패키지 매니저 교체를 하지 않는다. 설치 실패를 lockfile 삭제로 우회하지 않는다.
 - `App.test.js`는 비로그인 화면·주문 진입·입력값 검증을 확인하며 fetch를 대체한다. 새 테스트도 운영 API나 WebSocket에 접속하지 않도록 구성한다. Jest의 Swiper 매핑은 설치된 실제 ESM 파일을 변환하기 위한 설정이다.
 - UI 로직 변경은 사용자 입력·화면 상태·실패 처리 중심으로 검증한다. 화면을 바꿨다면 가능한 범위에서 브라우저로 확인하고, 확인하지 못한 범위는 명시한다.
+- Playwright 검사는 Chromium으로 비로그인 화면을 확인하며 API 응답을 대체한다. 최초 브라우저 설치와 검사 범위는 `../docs/verification-workflow.md`를 따른다. 실제 로그인·가입 완료의 증거로 사용하지 않는다.

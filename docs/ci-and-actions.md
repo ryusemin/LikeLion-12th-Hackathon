@@ -38,6 +38,8 @@
 | Backend 검증 | `powershell -NoProfile -File scripts/verify.ps1 -Target Backend` |
 | Frontend 검증 | `powershell -NoProfile -File scripts/verify.ps1 -Target Frontend` |
 | 전체 검증 | `powershell -NoProfile -File scripts/verify.ps1 -Target All` |
+| 브라우저 검증 | `powershell -NoProfile -File scripts/verify.ps1 -Target Browser` |
+| Docker 실행 상태 검증 | `powershell -NoProfile -File scripts/verify.ps1 -Target Runtime` |
 
 앱에서 이 저장소의 로컬 환경을 선택해 사용한다. Actions는 앱의 통합 터미널에서 실행된다. 버튼이 보이지 않으면 저장소를 다시 열거나 설정의 로컬 환경에서 `우리동네 영양사`를 선택한다. 프로젝트 파일은 등록·검증했지만 앱 UI에서 버튼 표시나 클릭 실행을 확인하지는 않았다. [공식 로컬 환경 안내](https://learn.chatgpt.com/docs/environments/local-environment)
 
@@ -49,6 +51,8 @@
 - `.local-tools/`의 JDK 17·Node 24가 있으면 검증 프로세스에서 사용하고, 없으면 준비된 시스템 런타임을 사용한다. 버전이 맞지 않으면 안내와 함께 실패한다.
 - 프론트 의존성이 없으면 `npm ci`가 필요하다고 알린다. 검증 버튼이 설치를 임의로 수행하지 않는다.
 - Backend는 테스트·JAR 빌드, Frontend는 CI와 같은 lint·테스트·빌드를 실행한다.
+- All은 Backend·Frontend·Browser를 실행한다. Runtime은 별도 명령이며 실행 중인 Docker 서비스를 검사한다.
+- PR CI는 Chromium을 설치하고 대체 API 기반 브라우저 검사도 수행한다. 실패 화면·trace와 HTML 보고서를 7일간 보관한다. 현재 배포 워크플로와 브랜치 보호 규칙을 이 작업에서 변경하지 않으므로 이 CI가 배포를 자동 차단한다고 가정하지 않는다.
 - 실패한 명령 뒤의 검증은 실행하지 않는다. 원래 작업 경로와 변경한 프로세스 환경변수는 성공·실패 모두에서 복원한다.
 - 운영 서버 실행이나 배포는 하지 않는다. H2·Mock 기반 검증 범위는 [검증 기록](verification.md)을 참고한다.
 

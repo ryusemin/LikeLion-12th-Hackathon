@@ -1,5 +1,5 @@
-param(
-    [ValidateSet('All', 'Backend', 'Frontend')]
+﻿param(
+    [ValidateSet('All', 'Backend', 'Frontend', 'Browser', 'Runtime')]
     [string]$Target = 'All'
 )
 
@@ -13,6 +13,12 @@ foreach ($environmentName in $environmentNames) {
 }
 
 try {
+    if ($Target -eq 'All') {
+        & (Join-Path $PSScriptRoot 'tests/verify-runtime.test.ps1')
+    }
+    if ($Target -eq 'Runtime') {
+        & (Join-Path $PSScriptRoot 'verify-runtime.ps1')
+    }
     if ($Target -in @('All', 'Backend')) {
         $localJdk = Get-ChildItem $toolsRoot -Directory -Filter 'jdk-17*' -ErrorAction SilentlyContinue | Select-Object -First 1
         if ($localJdk) { $env:JAVA_HOME = $localJdk.FullName }
@@ -31,7 +37,7 @@ try {
         finally { Pop-Location }
     }
 
-    if ($Target -in @('All', 'Frontend')) {
+    if ($Target -in @('All', 'Frontend', 'Browser')) {
         $localNode = Get-ChildItem $toolsRoot -Directory -Filter 'node-v24.*-win-x64' -ErrorAction SilentlyContinue | Select-Object -First 1
         if ($localNode) { $env:PATH = $localNode.FullName + ';' + $env:PATH }
         $nodeVersion = (& node --version | Out-String).Trim()
@@ -45,18 +51,26 @@ try {
             throw 'Frontend dependencies are missing. Run npm ci in Frontend first.'
         }
         if (-not $env:npm_config_cache) { $env:npm_config_cache = Join-Path $toolsRoot 'npm-cache' }
-        $env:CI = 'true'
 
         Push-Location (Join-Path $repositoryRoot 'Frontend')
         try {
-            & npm.cmd run lint
-            if ($LASTEXITCODE -ne 0) { throw "Frontend lint failed ($LASTEXITCODE)." }
-            & npm.cmd run test:ci
-            if ($LASTEXITCODE -ne 0) { throw "Frontend tests failed ($LASTEXITCODE)." }
-            # Keep the same policy as CI: ESLint errors fail in the preceding step.
-            $env:DISABLE_ESLINT_PLUGIN = 'true'
-            & npm.cmd run build
-            if ($LASTEXITCODE -ne 0) { throw "Frontend build failed ($LASTEXITCODE)." }
+            if ($Target -in @('All', 'Frontend')) {
+                $env:CI = 'true'
+                & npm.cmd run lint
+                if ($LASTEXITCODE -ne 0) { throw "Frontend lint failed ($LASTEXITCODE)." }
+                & npm.cmd run test:ci
+                if ($LASTEXITCODE -ne 0) { throw "Frontend tests failed ($LASTEXITCODE)." }
+                # 앞 단계에서 ESLint 오류를 검사하므로 빌드에서는 중복 검사를 생략한다.
+                $env:DISABLE_ESLINT_PLUGIN = 'true'
+                & npm.cmd run build
+                if ($LASTEXITCODE -ne 0) { throw "Frontend build failed ($LASTEXITCODE)." }
+            }
+            if ($Target -in @('All', 'Browser')) {
+                # 로컬·CI 모두 현재 소스로 전용 검증 서버를 새로 띄운다.
+                [Environment]::SetEnvironmentVariable('CI', $originalEnvironment['CI'], 'Process')
+                & npm.cmd run test:e2e
+                if ($LASTEXITCODE -ne 0) { throw "Browser tests failed ($LASTEXITCODE)." }
+            }
         }
         finally { Pop-Location }
     }

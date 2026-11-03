@@ -75,3 +75,17 @@ jobs:
         env:
           DISABLE_ESLINT_PLUGIN: 'true'
         run: npm run build
+      - name: Install test browser
+        run: npx playwright install --with-deps chromium
+      - name: Browser smoke tests (mock API)
+        run: npm run test:e2e
+      - name: Upload browser reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: browser-test-reports
+          path: |
+            Frontend/playwright-report/
+            Frontend/test-results/
+          if-no-files-found: ignore
+          retention-days: 7
