@@ -14,17 +14,17 @@
 
 - 현재 Backend는 로그인·재발급 응답 JSON으로 Access Token을 반환하고, API 요청에서 `Authorization: Bearer {accessToken}`을 읽는다. 로그인 응답 헤더에 토큰이 있다고 가정하지 않는다.
 - Refresh Token은 HttpOnly 쿠키다. JavaScript로 쿠키 값을 읽거나 별도로 복사하지 않으며, 쿠키가 필요한 요청은 credentials와 CORS 설정을 함께 확인한다.
-- 현재 Login·App·Header 등에는 과거 쿠키 기반 인증 코드가 남아 있다. `Cookies.get('token')` 또는 기존 로그인 주소를 새 API 계약으로 간주하지 않는다.
+- 현재 Login·App·Header 등에는 과거 쿠키 기반 인증 코드가 남아 있다(#4). `Cookies.get('token')` 또는 기존 로그인 주소를 새 API 계약으로 간주하지 않는다.
 - 인증 연동 변경은 로그인·사용자 조회·재발급·로그아웃·재접속 흐름을 함께 검토한다. 자동 재발급을 구현한다면 동시 401의 중복 재발급과 무한 재시도를 방지한다.
 - 토큰 저장 위치는 기존 동작과 보안 영향을 확인해 결정한다. 편의를 위해 Refresh Token을 localStorage로 옮기거나 HttpOnly를 해제하지 않는다.
 - API·이미지·WebSocket·결제 복귀 주소는 `src/config/endpoints.js`를 통해 환경변수를 사용한다. `npm start`는 `.env.development`, 배포 빌드는 `.env.production`, 테스트는 `.env.test`를 읽는다. 개인 설정은 해당 환경의 `.local` 파일로 덮어쓰며, 테스트 중 네트워크 호출은 대체한다.
-- WebSocket에서는 연결·구독·해제를 함께 확인하고 인증된 사용자와 구독 대상이 일치하는지 서버 계약을 확인한다.
+- WebSocket에서는 연결·구독·해제를 함께 확인하고 인증된 사용자와 구독 대상이 일치하는지 서버 계약을 확인한다. 현재 서버의 CONNECT 인증·구독 권한 보완은 #10에서 다룬다.
 
 ## 실행과 검증
 
 전체 Docker 실행은 루트 `compose.yaml`과 `docs/docker-development.md`를 사용한다. 컨테이너 내부에서도 브라우저 API 주소는 `127.0.0.1:8080`이다. 프론트 src/public만 마운트하고 호스트 node_modules는 마운트하지 않는다. 패키지·env 변경은 이미지 재빌드 또는 컨테이너 재생성이 필요하다.
 
-아래 명령은 `Frontend/` 디렉터리에서 실행한다. Node 24·npm 11에서 설치·테스트·빌드를 검증했으며, 환경과 남은 경고는 `../docs/verification.md`를 참고한다.
+아래 명령은 `Frontend/` 디렉터리에서 실행한다. 지금까지 실행한 결과와 남은 경고는 `../docs/verification.md`에 기록한다.
 
 | 목적 | Windows PowerShell | Linux / CI |
 | --- | --- | --- |

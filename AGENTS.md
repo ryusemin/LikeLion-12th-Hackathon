@@ -5,6 +5,7 @@
 - 우리동네 영양사는 식단 추천·도시락 구독 서비스다. `Backend/`는 Spring Boot 모놀리식 서버, `Frontend/`는 React 앱이다.
 - 이 파일은 저장소 공통 지침이다. 백엔드 작업은 `Backend/AGENTS.md`, 프론트 작업은 `Frontend/AGENTS.md`도 확인한다. 양쪽 API에 영향을 주는 변경은 두 지침을 모두 확인한다.
 - 현재 동작은 작업 브랜치의 코드와 테스트로 확인한다. README·노션·주석이 코드와 다르면 차이를 설명하고, 문서만으로 구현 완료를 판단하지 않는다.
+- 지침에 '현재'로 적은 미해결 상태에는 관련 GitHub 이슈 번호를 함께 적는다. 그 이슈를 수정하는 작업에서 해당 지침 줄도 갱신하거나 삭제한다.
 - 실행 환경·환경변수·설치 명령을 다룰 때는 `docs/development.md`와 `Backend/nimn.env.example`을 참고한다.
 - 자동 검증과 Codex 실행 Actions를 다룰 때는 `docs/ci-and-actions.md`를 참고한다. Windows 전체 검증 진입점은 `scripts/verify.ps1`이다.
 
@@ -32,7 +33,12 @@
 
 - 기본 로컬 환경은 Windows PowerShell이다. 명령을 안내할 때 작업 디렉터리와 셸을 명시한다. Linux CI 명령을 그대로 로컬 명령으로 제시하지 않는다.
 - 비밀번호·JWT 서명키·API 키·실제 토큰·개인정보를 코드, 문서, 로그 또는 도구 출력에 노출하지 않는다. 환경변수는 이름과 용도를 중심으로 확인한다.
-- `.gitignore`는 Git 추적 설정이며 Codex의 파일 접근을 막는 장치가 아니다. 실제 접근 권한은 실행 환경의 정책을 따른다.
+- `.gitignore`는 Git 추적 설정이며 AI 도구의 파일 접근을 막는 장치가 아니다. 실제 접근 권한은 실행 환경의 정책을 따른다.
 - 일반 검증에는 로컬 DB와 외부 호출 대체를 사용한다. 운영 DB 변경, 실제 결제·메일 발송, 배포·push는 요청에서 승인된 범위에서만 수행한다.
 - `develop`에 대한 push는 배포 워크플로를 실행할 수 있다. 커밋·push·배포를 동일한 작업으로 취급하지 않는다.
-- 이 지침은 앱의 승인·샌드박스·조직 정책을 대체하지 않는다. 사용자 전역 Codex 설정을 프로젝트 작업 중 임의로 변경하지 않는다.
+- 이 지침은 앱의 승인·샌드박스·조직 정책을 대체하지 않는다. Codex·Claude Code 등 사용자 전역 AI 도구 설정을 프로젝트 작업 중 임의로 변경하지 않는다.
+
+## Git 관례
+
+- 브랜치는 `develop`에서 `<타입>/<영문-설명>`(예: `feat/global-exception-handler`, `chore/verification-workflow`)으로 만들고, PR 대상은 `develop`이다.
+- 커밋 메시지는 `<타입>: <한국어 요약>`이다. 타입은 `feat`·`fix`·`refactor`·`docs`·`test`·`chore`를 소문자로 쓴다. PR은 `.github/PULL_REQUEST_TEMPLATE.md` 양식과 `Closes #이슈번호`를 따른다.
