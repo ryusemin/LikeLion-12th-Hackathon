@@ -70,7 +70,7 @@ AGENTS.md는 공통 작업 규칙, Skill은 검증 작업에 사용하는 절차
 | [scripts/init-docker-env.ps1](../scripts/init-docker-env.ps1) | Docker용 로컬 `.env` 초기 생성. 기존 파일은 보존 |
 | [Playwright 설정](../Frontend/playwright.config.js)·[e2e/](../Frontend/e2e/) | 검사용 브라우저·서버·보고서 설정과 실제 화면 검사 시나리오. 현재 API는 대체하며 실제 인증 연동 검사는 아님 |
 | [GitHub CI](../.github/workflows/ci.yml) | PR 등에서 테스트·빌드·브라우저 검사를 자동 실행 |
-| [백엔드 배포](../.github/workflows/backend-deploy.yml)·[프론트 배포](../.github/workflows/frontend-deploy.yml) | 기존 배포 자동화. CI와 독립적이므로 CI 실패가 배포 차단을 의미하지는 않음 |
+| [백엔드 배포](../.github/workflows/backend-deploy.yml)·[프론트 배포](../.github/workflows/frontend-deploy.yml) | 기존 배포 자동화. 운영 중단으로 develop push 자동 실행을 끄고 수동 실행만 남김. CI와 독립적이므로 CI 실패가 배포 차단을 의미하지는 않음 |
 | [이슈 양식](../.github/ISSUE_TEMPLATE/)·[PR 양식](../.github/PULL_REQUEST_TEMPLATE.md) | GitHub에서 문제·변경 내용·검증 결과를 일정한 형식으로 작성 |
 
 검사 명령·통과 기준·보장하지 않는 범위는 [검증 절차](verification-workflow.md), CI 실행 조건은 [CI와 Actions 안내](ci-and-actions.md)에서 확인한다.

@@ -27,6 +27,8 @@
 
 워크플로 추가만으로 병합이 자동 차단되지는 않는다. 저장소의 브랜치 보호 또는 Ruleset에서 `Backend verification`, `Frontend verification`을 필수 상태 검사로 지정하는 작업은 별도다.
 
+운영 서버를 사용하지 않으므로 `backend-deploy.yml`, `frontend-deploy.yml`의 `develop` push 트리거를 주석 처리했다. 두 워크플로는 GitHub Actions 화면의 수동 실행(`workflow_dispatch`)으로만 시작된다. 운영을 재개하면 각 파일의 `# push:` 블록 주석을 해제하면 된다. 자동 배포를 켰을 때의 동작은 다음과 같다.
+
 기존 `backend-deploy.yml`, `frontend-deploy.yml`은 독립적으로 동작한다. 이번 CI는 배포 작업의 선행 조건으로 연결하지 않았다. 따라서 `develop` push에서는 검증·배포가 각각 시작될 수 있으며, CI 실패 시 배포도 자동 중단된다고 해석하면 안 된다.
 
 ## 2. Codex 실행 Actions
