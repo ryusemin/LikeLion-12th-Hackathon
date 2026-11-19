@@ -26,6 +26,8 @@ function Signup(){
     const [isCodeSent, setIsCodeSent] = useState(false);
     const [isCodeSending, setIsCodeSending] = useState(false);
     const [isCodeVerified, setIsCodeVerified] = useState(false);
+    // 서버가 발급한 일회용 이메일 인증 증명. 가입 요청에 함께 보낸다.
+    const [verificationToken, setVerificationToken] = useState("");
     const [isCodeVerifying, setIsCodeVerifying] = useState(false);
     const [codeError, setCodeError] = useState("");
     const [codeSuccess, setCodeSuccess] = useState("");
@@ -147,7 +149,7 @@ function Signup(){
                 },
                 body: JSON.stringify({
                     email: email,
-                    code: 0
+                    purpose: "SIGNUP"
                 }),
             });
 
@@ -155,7 +157,8 @@ function Signup(){
                 setIsCodeSent(true);
                 setCodeSuccess("인증번호가 발송되었습니다. 이메일을 확인해주세요.");
             } else {
-                setCodeError("인증번호 발송에 실패했습니다.");
+                const result = await response.json().catch(() => ({}));
+                setCodeError(result.message || "인증번호 발송에 실패했습니다.");
             }
         } catch (error) {
             setCodeError("인증번호 발송 중 오류가 발생했습니다.");
@@ -183,6 +186,7 @@ function Signup(){
                 },
                 body: JSON.stringify({
                     email: email,
+                    purpose: "SIGNUP",
                     code: parseInt(verificationCode)
                 }),
             });
@@ -191,6 +195,7 @@ function Signup(){
                 const result = await response.json();
                 if (result.success === true) {
                     setIsCodeVerified(true);
+                    setVerificationToken(result.verificationToken || "");
                     setCodeSuccess(result.message || "이메일 인증이 완료되었습니다.");
                 } else {
                     setCodeError(result.message || "인증번호가 일치하지 않습니다.");
@@ -219,6 +224,7 @@ function Signup(){
         setEmailSuccess("");
         setIsCodeSent(false);
         setIsCodeVerified(false);
+        setVerificationToken("");
         setVerificationCode("");
         setCodeError("");
         setCodeSuccess("");
@@ -308,6 +314,7 @@ function Signup(){
                     phoneNumber: phoneNumber.replace(/-/g, ''), // 하이픈 제거
                     roadAddress: roadAddress,
                     detailAddress: detailAddress,
+                    emailVerificationToken: verificationToken,
                 }),
             });
 
@@ -315,8 +322,13 @@ function Signup(){
                 alert("회원가입이 완료되었습니다!");
                 navigate('/login');
             } else {
-                const result = await response.json();
-                alert("회원가입 실패: " + (result.message || "알 수 없는 오류"));
+                const result = await response.json().catch(() => ({}));
+                // 증명 토큰은 한 번 쓰면 소비되므로 실패하면 이메일 인증을 다시 받게 한다.
+                setVerificationToken("");
+                setIsCodeVerified(false);
+                setIsCodeSent(false);
+                setVerificationCode("");
+                alert("회원가입 실패: " + (result.message || "알 수 없는 오류") + " 이메일 인증을 다시 진행해주세요.");
             }
         } catch (error) {
             alert("회원가입 중 오류가 발생했습니다.");

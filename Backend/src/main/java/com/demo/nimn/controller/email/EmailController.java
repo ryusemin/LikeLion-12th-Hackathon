@@ -2,14 +2,12 @@ package com.demo.nimn.controller.email;
 
 import com.demo.nimn.dto.email.EmailDTO;
 import com.demo.nimn.dto.email.EmailRequestDto;
-import com.demo.nimn.service.email.MailService;
+import com.demo.nimn.service.email.EmailVerificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpSession;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,120 +15,45 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/email")
 public class EmailController {
-    private final MailService mailService;
+    private final EmailVerificationService emailVerificationService;
 
-    public EmailController(MailService mailService) {
-        this.mailService = mailService;
+    public EmailController(EmailVerificationService emailVerificationService) {
+        this.emailVerificationService = emailVerificationService;
     }
 
-    @Operation(summary = "인증 코드 전송", description = "해당 이메일로 인증 메일을 전송합니다.")
+    @Operation(summary = "인증 코드 전송", description = "목적(SIGNUP·PASSWORD_RESET)별 인증번호를 메일로 보낸다. 3분간 유효하며 60초 안에는 다시 보낼 수 없다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "성공"),
-            @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content()),
+            @ApiResponse(responseCode = "400", description = "이메일·목적 누락", content = @Content()),
+            @ApiResponse(responseCode = "429", description = "재전송 대기 시간 이내", content = @Content()),
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content())
     })
-    // 인증 이메일 전송
     @PostMapping("/send")
-    public ResponseEntity<EmailDTO> mailSend(@RequestBody EmailRequestDto emailRequestDto, HttpSession session) {
-        EmailDTO emailDTO;
-        String email = emailRequestDto.getEmail();
-
-        try {
-            // 이메일 인증 숫자를 저장하는 변수
-            int number = mailService.sendMail(email);
-            session.setMaxInactiveInterval(60 * 3); // 세션 저장 시간 3분 설정
-            session.setAttribute("email", email);
-            session.setAttribute("authCode", number); // 이메일 인증 코드 세션에 저장
-            String num = String.valueOf(number);
-
-            emailDTO = EmailDTO.builder()
-                    .email(email)
-                    .isSuccess(true)
-                    .message("인증번호 전송 성공")
-                    .build();
-            return ResponseEntity.ok(emailDTO);
-        } catch (Exception e) {
-            e.printStackTrace();
-            emailDTO = EmailDTO.builder()
-                    .email(email)
-                    .isSuccess(false)
-                    .message("인증번호 전송 실패")
-                    .build();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(emailDTO);
-        }
+    public ResponseEntity<EmailDTO> mailSend(@RequestBody EmailRequestDto request) {
+        emailVerificationService.sendCode(request.getEmail(), request.getPurpose());
+        return ResponseEntity.ok(EmailDTO.builder()
+                .email(request.getEmail())
+                .isSuccess(true)
+                .message("인증번호 전송 성공")
+                .build());
     }
 
-    // 인증번호 일치여부 확인
-    @Operation(summary = "인증번호 일치여부 확인", description = "인증번호 검증을 진행합니다")
+    @Operation(summary = "인증번호 일치여부 확인", description = "인증번호가 맞으면 가입·비밀번호 재설정에 사용할 일회용 verificationToken(10분 유효)을 발급한다. 최대 5회까지 확인할 수 있다.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "성공"),
-            @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content()),
-            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content())
+            @ApiResponse(responseCode = "200", description = "성공, verificationToken 발급"),
+            @ApiResponse(responseCode = "400", description = "인증번호 없음·만료 또는 요청 누락", content = @Content()),
+            @ApiResponse(responseCode = "401", description = "인증번호 불일치", content = @Content()),
+            @ApiResponse(responseCode = "429", description = "확인 시도 횟수 초과", content = @Content())
     })
     @PostMapping("/check")
-    public ResponseEntity<EmailDTO> mailCheck(
-            @RequestBody EmailRequestDto requestDto,
-            HttpSession session) {
-
-        try {
-            String email = (String) session.getAttribute("email");
-            Object objCode = session.getAttribute("authCode");
-
-            if (email == null || objCode == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                        EmailDTO.builder()
-                                .email(requestDto.getEmail())
-                                .isSuccess(false)
-                                .message("세션 정보가 존재하지 않습니다. (만료되었거나 전송되지 않음)")
-                                .build()
-                );
-            }
-            int code = (int) objCode;
-
-            boolean isEmailMatch = requestDto.getEmail().equals(email);
-            boolean isCodeMatch = requestDto.getCode() == code? true: false;
-
-            if (!isEmailMatch) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                        EmailDTO.builder()
-                                .email(requestDto.getEmail())
-                                .isSuccess(false)
-                                .message("요청된 이메일이 일치하지 않습니다.")
-                                .build()
-                );
-            }
-
-            if (!isCodeMatch) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                        EmailDTO.builder()
-                                .email(requestDto.getEmail())
-                                .isSuccess(false)
-                                .message("인증번호가 일치하지 않습니다.")
-                                .build()
-                );
-            }
-
-            session.removeAttribute("email");
-            session.removeAttribute("authCode");
-
-            // 인증 성공
-            return ResponseEntity.ok(
-                    EmailDTO.builder()
-                            .email(requestDto.getEmail())
-                            .isSuccess(true)
-                            .message("이메일 인증이 완료되었습니다.")
-                            .build()
-            );
-
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    EmailDTO.builder()
-                    .email(requestDto.getEmail())
-                    .isSuccess(false)
-                    .message("에러 발생")
-                    .build());
-        }
+    public ResponseEntity<EmailDTO> mailCheck(@RequestBody EmailRequestDto request) {
+        String token = emailVerificationService.verifyCode(
+                request.getEmail(), request.getPurpose(), String.valueOf(request.getCode()));
+        return ResponseEntity.ok(EmailDTO.builder()
+                .email(request.getEmail())
+                .isSuccess(true)
+                .message("이메일 인증이 완료되었습니다.")
+                .verificationToken(token)
+                .build());
     }
 }
