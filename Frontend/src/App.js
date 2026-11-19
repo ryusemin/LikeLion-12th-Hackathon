@@ -1,3 +1,4 @@
+import { apiUrl } from './config/endpoints';
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, useLocation } from "react-router-dom";
 import './App.css';
@@ -42,7 +43,7 @@ const AppContent = () => {
 
   const checkAuthStatus = async () => {
     try {
-      const response = await fetch('https://nimn.store/api/users', {
+      const response = await fetch(apiUrl('/api/users'), {
         method: 'GET',
         credentials: 'include'
       });

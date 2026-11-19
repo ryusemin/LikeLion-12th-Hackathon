@@ -1,11 +1,12 @@
 name: Frontend Deploy
 
+# 운영 서버를 사용하지 않아 develop push 자동 배포를 껐다. 운영을 재개하면 아래 push 블록의 주석을 해제한다.
 on:
-  push:
-    paths:
-      - 'Frontend/**'
-      - '.github/workflows/frontend-deploy.yml'
-    branches: ['develop']
+  # push:
+  #   paths:
+  #     - 'Frontend/**'
+  #     - '.github/workflows/frontend-deploy.yml'
+  #   branches: ['develop']
   workflow_dispatch:
 
 jobs:
@@ -19,7 +20,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version-file: Frontend/.nvmrc
           cache: 'npm'
           cache-dependency-path: Frontend/package-lock.json
 

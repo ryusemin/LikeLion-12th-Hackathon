@@ -1,0 +1,9 @@
+# 빌드에 필요한 소스만 허용합니다. 개인 env·캐시·기존 빌드는 전송하지 않습니다.
+**
+!gradlew
+!build.gradle
+!settings.gradle
+!gradle/
+!gradle/**
+!src/
+!src/**

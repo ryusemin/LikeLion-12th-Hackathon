@@ -1,0 +1,35 @@
+version = 1
+name = "우리동네 영양사"
+
+[setup]
+script = ""
+
+[[actions]]
+name = "Backend 검증"
+icon = "test"
+command = "powershell -NoProfile -File scripts/verify.ps1 -Target Backend"
+platform = "win32"
+
+[[actions]]
+name = "Frontend 검증"
+icon = "test"
+command = "powershell -NoProfile -File scripts/verify.ps1 -Target Frontend"
+platform = "win32"
+
+[[actions]]
+name = "전체 검증"
+icon = "test"
+command = "powershell -NoProfile -File scripts/verify.ps1 -Target All"
+platform = "win32"
+
+[[actions]]
+name = "브라우저 검증"
+icon = "test"
+command = "powershell -NoProfile -File scripts/verify.ps1 -Target Browser"
+platform = "win32"
+
+[[actions]]
+name = "Docker 실행 상태 검증"
+icon = "test"
+command = "powershell -NoProfile -File scripts/verify.ps1 -Target Runtime"
+platform = "win32"

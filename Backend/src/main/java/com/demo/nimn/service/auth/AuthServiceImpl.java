@@ -2,6 +2,8 @@ package com.demo.nimn.service.auth;
 
 import com.demo.nimn.dto.auth.TokenResponse;
 import com.demo.nimn.entity.auth.Users;
+import com.demo.nimn.exception.CustomException;
+import com.demo.nimn.exception.ErrorCode;
 import com.demo.nimn.filter.JWTUtil;
 import com.demo.nimn.repository.auth.UserRepository;
 import org.springframework.stereotype.Service;
@@ -26,12 +28,12 @@ public class AuthServiceImpl implements AuthService{
     public TokenResponse reissueAccessToken(String refreshToken) {
 
         if (refreshToken == null) {
-            throw new RuntimeException("Refresh token 없음");
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
         }
 
         // 1. refresh 만료 체크
         if (jwtUtil.isExpired(refreshToken)) {
-            throw new RuntimeException("Refresh token 만료");
+            throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
         // 2. email 추출
@@ -42,19 +44,19 @@ public class AuthServiceImpl implements AuthService{
 
         // 🔥 4. 재사용 / 변조 감지
         if (savedToken == null) {
-            throw new RuntimeException("로그인 정보 없음 (이미 로그아웃됨)");
+            throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
         if (!savedToken.equals(refreshToken)) {
             // 🔥 재사용 공격 감지 (중요)
             refreshTokenService.deleteRefreshToken(email); // 전체 세션 종료 느낌
-            throw new RuntimeException("Refresh token 재사용 감지 (보안 위험)");
+            throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
         // 5. 유저 조회
         Users user = userRepository.findByEmail(email);
         if (user == null) {
-            throw new RuntimeException("유저 없음");
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
         }
 
         // 🔥 6. 기존 refresh 삭제 (Rotation 핵심)
@@ -75,11 +77,17 @@ public class AuthServiceImpl implements AuthService{
     public void userLogout(String refreshToken) {
 
         if (refreshToken == null) {
-            throw new RuntimeException("Refresh token 없음");
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
         }
 
-        // 🔥 email 기반 구조니까 email 추출 필요
-        String email = jwtUtil.getUsername(refreshToken);
+        // 만료된 토큰이어도 로그아웃은 허용 가능
+        String email;
+        try {
+            email = jwtUtil.getUsername(refreshToken);
+        } catch (Exception e) {
+            // 토큰이 깨졌거나 만료된 경우
+            return; // 그냥 무시 (이미 로그아웃 상태)
+        }
 
         // Redis 삭제
         refreshTokenService.deleteRefreshToken(email);

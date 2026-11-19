@@ -1,3 +1,4 @@
+import { apiUrl } from '../config/endpoints';
 import React, { useState ,useEffect} from "react";
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -26,7 +27,7 @@ function PasswordChange() {
     useEffect(() => {
         const fetchUserInfo = async () => {
             try {
-                const response = await fetch('https://nimn.store/api/users', {
+                const response = await fetch(apiUrl('/api/users'), {
                     method: "GET",
                     credentials: 'include'
                 });
@@ -68,7 +69,7 @@ function PasswordChange() {
         setSuccess("");
 
         try {
-            const response = await fetch('https://nimn.store/api/users/password', {
+            const response = await fetch(apiUrl('/api/users/password'), {
                 method: "PUT",
                 headers: {
                     'Content-Type': 'application/json',

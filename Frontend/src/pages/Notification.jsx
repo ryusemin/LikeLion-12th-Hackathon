@@ -1,3 +1,4 @@
+import { apiUrl, notificationSocketUrl } from '../config/endpoints';
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
 import SockJS from 'sockjs-client';
@@ -17,7 +18,7 @@ function Notification() {
     // 사용자 정보 조회 API
     const getUserInfo = useCallback(async () => {
         try {
-            const response = await fetch('https://nimn.store/api/users', {
+            const response = await fetch(apiUrl('/api/users'), {
                 method: "GET",
                 credentials: 'include',
             });
@@ -54,7 +55,7 @@ function Notification() {
     // 모든 알림 조회 API
     const getAllNotificationsAPI = useCallback(async () => {
         try {
-            const response = await fetch(`https://nimn.store/api/notification/all?userEmail=${userEmail}`);
+            const response = await fetch(apiUrl(`/api/notification/all?userEmail=${userEmail}`));
             
             if (response.ok) {
                 const data = await response.json();
@@ -70,7 +71,7 @@ function Notification() {
     // 알림 읽음 처리 API
     const markAsReadAPI = useCallback(async (notificationId) => {
         try {
-            const response = await fetch(`https://nimn.store/api/notification/${notificationId}`, {
+            const response = await fetch(apiUrl(`/api/notification/${notificationId}`), {
                 method: 'PATCH'
             });
             return response.ok;
@@ -82,7 +83,7 @@ function Notification() {
     // 모든 알림 읽음 처리 API
     const markAllAsReadAPI = useCallback(async () => {
         try {
-            const response = await fetch(`https://nimn.store/api/notification?userEmail=${userEmail}`, {
+            const response = await fetch(apiUrl(`/api/notification?userEmail=${userEmail}`), {
                 method: 'PATCH'
             });
             return response.ok;
@@ -99,7 +100,7 @@ function Notification() {
         }
 
         // SockJS 연결 시 query param으로 userEmail 전달
-        const socket = new SockJS(`https://nimn.store/ws/notification?userEmail=${userEmail}`);
+        const socket = new SockJS(notificationSocketUrl(userEmail));
 
         const client = new Client({
             webSocketFactory: () => socket,

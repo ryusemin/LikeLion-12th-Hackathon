@@ -2,6 +2,10 @@
   "name": "hackathon",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=24 <25",
+    "npm": ">=11 <12"
+  },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.6.0",
     "@fortawesome/free-brands-svg-icons": "^6.6.0",
@@ -35,14 +39,27 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": " GENERATE_SOURCEMAP=false react-scripts build",
+    "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "test:ci": "react-scripts test --watchAll=false --runInBand",
+    "lint": "eslint src --ext .js,.jsx",
+    "eject": "react-scripts eject",
+    "test:e2e": "playwright test"
   },
   "eslintConfig": {
     "extends": [
       "react-app",
       "react-app/jest"
+    ]
+  },
+  "jest": {
+    "moduleNameMapper": {
+      "^swiper/react$": "<rootDir>/node_modules/swiper/swiper-react.mjs",
+      "^swiper/modules$": "<rootDir>/node_modules/swiper/modules/index.mjs",
+      "^swiper/css(?:/.*)?$": "<rootDir>/node_modules/swiper/swiper.css"
+    },
+    "transformIgnorePatterns": [
+      "[/\\\\]node_modules[/\\\\](?!(swiper|ssr-window|dom7)[/\\\\])"
     ]
   },
   "browserslist": {
@@ -58,6 +75,7 @@
     ]
   },
   "devDependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@playwright/test": "^1.64.1"
   }
 }

@@ -1,0 +1,111 @@
+# 로컬 개발 전용입니다. 배포 구성으로 사용하지 마세요.
+name: nimn-dev
+
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: nimn_docker
+      MYSQL_USER: nimn
+      MYSQL_PASSWORD: ${DOCKER_MYSQL_PASSWORD:?먼저 scripts/init-docker-env.ps1을 실행하세요}
+      MYSQL_ROOT_PASSWORD: ${DOCKER_MYSQL_ROOT_PASSWORD:?먼저 scripts/init-docker-env.ps1을 실행하세요}
+      TZ: Asia/Seoul
+    ports:
+      - "127.0.0.1:3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 30s
+
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "127.0.0.1:6380:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile.dev
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_CONFIG_IMPORT: ""
+      SERVER_ADDRESS: 0.0.0.0
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/nimn_docker?serverTimezone=Asia/Seoul
+      DATABASE_USERNAME: nimn
+      DATABASE_PASSWORD: ${DOCKER_MYSQL_PASSWORD:?먼저 scripts/init-docker-env.ps1을 실행하세요}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_JPA_SHOW_SQL: "false"
+      JWT_SECRET: ${DOCKER_JWT_SECRET:?먼저 scripts/init-docker-env.ps1을 실행하세요}
+      # 실제 외부 서비스에 연결하지 않는 로컬 더미 설정입니다.
+      OPENAI_API_KEY: local-placeholder
+      OPENAI_CHAT_MODEL: local-placeholder
+      OPENAI_CHAT_URL: http://127.0.0.1:18080/v1/chat/completions
+      OPENAI_IMAGE_MODEL: local-placeholder
+      OPENAI_IMAGE_URL: http://127.0.0.1:18080/v1/images/generations
+      import_apiKey: local-placeholder
+      import_secretKey: local-placeholder
+      GOOGLE_EMAIL: local@example.invalid
+      GOOGLE_APP_PASSWORD: local-placeholder
+      SPRING_MAIL_HOST: 127.0.0.1
+      SPRING_MAIL_PORT: 1025
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "false"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "false"
+      TZ: Asia/Seoul
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      # 애플리케이션의 포트 기동 검사입니다. 업무 API 검증을 대신하지 않습니다.
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8080"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 45s
+
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile.dev
+    env_file:
+      - ./Frontend/.env.development
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3000
+      BROWSER: none
+      # Windows의 소스 마운트에서도 변경을 감지합니다.
+      WATCHPACK_POLLING: "true"
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - ./Frontend/src:/app/src:ro
+      - ./Frontend/public:/app/public:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:3000/',r=>{r.resume();process.exit(r.statusCode===200?0:1)}).on('error',()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+
+volumes:
+  mysql-data:
+  redis-data:

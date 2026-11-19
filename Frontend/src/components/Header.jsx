@@ -1,3 +1,4 @@
+import { apiUrl } from '../config/endpoints';
 import React, { useState, useEffect } from "react";
 import '../CSS/Header.css';
 import logo from '../images/logo.png';
@@ -24,7 +25,7 @@ const Header = ({ notificationCount, surveyCount, userInfo }) => {
     const checkLoginStatus = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch('https://nimn.store/api/users', {
+            const response = await fetch(apiUrl('/api/users'), {
                 method: 'GET',
                 credentials: 'include',
                 headers: {

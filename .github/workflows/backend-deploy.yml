@@ -1,10 +1,11 @@
 name: Backend Deploy
 
+# 운영 서버를 사용하지 않아 develop push 자동 배포를 껐다. 운영을 재개하면 아래 push 블록의 주석을 해제한다.
 on:
-  push:
-    branches: [ develop ]
-    paths:
-      - 'Backend/**'
+  # push:
+  #   branches: [ develop ]
+  #   paths:
+  #     - 'Backend/**'
   workflow_dispatch:
 
 jobs:

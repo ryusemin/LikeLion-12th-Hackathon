@@ -1,0 +1,91 @@
+name: Project CI
+
+on:
+  pull_request:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: Backend
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+          cache-dependency-path: |
+            Backend/*.gradle*
+            Backend/gradle/wrapper/gradle-wrapper.properties
+      - name: Test and build executable JAR
+        run: bash ./gradlew test bootJar --no-daemon --console=plain
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: backend-test-reports
+          path: |
+            Backend/build/reports/tests/test/
+            Backend/build/test-results/test/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  frontend:
+    name: Frontend verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: 'true'
+    defaults:
+      run:
+        working-directory: Frontend
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: Frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: Frontend/package-lock.json
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Lint (errors fail; warnings remain visible)
+        run: npm run lint
+      - name: Test
+        run: npm run test:ci
+      - name: Build
+        # ESLint already ran above; do not turn its existing warnings into CRA build errors.
+        env:
+          DISABLE_ESLINT_PLUGIN: 'true'
+        run: npm run build
+      - name: Install test browser
+        run: npx playwright install --with-deps chromium
+      - name: Browser smoke tests (mock API)
+        run: npm run test:e2e
+      - name: Upload browser reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: browser-test-reports
+          path: |
+            Frontend/playwright-report/
+            Frontend/test-results/
+          if-no-files-found: ignore
+          retention-days: 7

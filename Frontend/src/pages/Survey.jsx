@@ -1,3 +1,4 @@
+import { apiUrl, notificationSocketUrl } from '../config/endpoints';
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
 import SockJS from 'sockjs-client';
@@ -20,7 +21,7 @@ function Survey() {
     // 사용자 정보 조회 API
     const getUserInfo = useCallback(async () => {
         try {
-            const response = await fetch('https://nimn.store/api/users', {
+            const response = await fetch(apiUrl('/api/users'), {
                 method: "GET",
                 credentials: 'include',
             });
@@ -52,7 +53,7 @@ function Survey() {
     // 모든 알림 조회 API (REVIEW 타입만)
     const getAllNotificationsAPI = useCallback(async () => {
         try {
-            const response = await fetch(`https://nimn.store/api/notification/all?userEmail=${userEmail}`);
+            const response = await fetch(apiUrl(`/api/notification/all?userEmail=${userEmail}`));
             
             if (response.ok) {
                 const data = await response.json();
@@ -69,7 +70,7 @@ function Survey() {
     // 알림 읽음 처리 API 추가
     const markNotificationAsReadAPI = useCallback(async (notificationId) => {
         try {
-            const response = await fetch(`https://nimn.store/api/notification/${notificationId}`, {
+            const response = await fetch(apiUrl(`/api/notification/${notificationId}`), {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -101,7 +102,7 @@ function Survey() {
     // 일일 리뷰 조회 API - 날짜 매개변수를 받아서 해당 날짜의 데이터를 조회
     const getDailyReviewAPI = useCallback(async (userEmail, date) => {
         try {
-            const response = await fetch(`https://nimn.store/api/review/daily?userEmail=${userEmail}&date=${date}`, {
+            const response = await fetch(apiUrl(`/api/review/daily?userEmail=${userEmail}&date=${date}`), {
                 method: "GET",
                 credentials: 'include',
             });
@@ -120,7 +121,7 @@ function Survey() {
     // 하루 식단 리뷰 수정 API
     const updateDailyReviewAPI = useCallback(async (dailyReviewId, requestBody) => {
         try {
-            const response = await fetch(`https://nimn.store/api/review/daily/${dailyReviewId}`, {
+            const response = await fetch(apiUrl(`/api/review/daily/${dailyReviewId}`), {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -154,7 +155,7 @@ function Survey() {
             }
         }
 
-        const socket = new SockJS(`https://nimn.store/ws/notification?userEmail=${userEmail}`);
+        const socket = new SockJS(notificationSocketUrl(userEmail));
 
         const client = new Client({
             webSocketFactory: () => socket,
@@ -539,7 +540,7 @@ function Survey() {
                                                 </h3>
                                                 <div className="survey_modal_food_image">
                                                     <img 
-                                                        src={review.foodImage ? `https://nimn.store${review.foodImage}` : logo} 
+                                                        src={review.foodImage ? apiUrl(review.foodImage) : logo}
                                                         className="survey_modal_logo_image" 
                                                         alt="food" 
                                                         onError={(e) => {

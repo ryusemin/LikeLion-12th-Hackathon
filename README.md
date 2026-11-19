@@ -1,5 +1,7 @@
 <h1 align="center">우리동네영양사</h1>
 
+문서·설정·스크립트의 역할은 [프로젝트 자료 안내](docs/README.md)에 정리되어 있습니다. 실행은 [Docker 실행](docs/docker-development.md), 환경 준비는 [개발 안내](docs/development.md), 작업 완료 기준은 [검증 절차](docs/verification-workflow.md)를 참고합니다.
+
 <p align="center">
   <img width="200px;" src="Frontend/src/images/logo.png" alt="로고"/>
 </p>
@@ -78,23 +80,27 @@
 ### 요구사항
 
 - Java 17
-- Spring: 3.5.0
-- Node.js: v23.9.0
-- npm: 10.9.2
+- Spring Boot: 3.5.16
+- Node.js: 24.x LTS (`Frontend/.nvmrc` 기준)
+- npm: 11.x
+- Docker Compose: 로컬 MySQL·Redis 실행 시 사용
 
 ### 설치 및 실행
 
-1. **Repository 클론**
-```bash
-git clone https://github.com/2-jjong/LikeLion-12th-Hackathon.git
+프론트·백엔드·MySQL·Redis를 함께 실행하려면 Docker Desktop을 켜고 저장소 루트에서 다음 명령을 실행하세요. 상세 사용법은 [Docker 로컬 개발 안내](docs/docker-development.md)를 참고하세요.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/init-docker-env.ps1
+docker compose up -d --build --wait --wait-timeout 240
 ```
 
-2. **프론트엔드 실행**
-```bash
-cd Frontend
-npm install
-npm start
-```
+환경변수 준비부터 로컬 DB·서버 실행, Windows·Linux 검증 명령은 [로컬 개발 환경 안내](docs/development.md)를 참고하세요.
+
+- 백엔드: `Backend/nimn.env.example`을 참고해 로컬 설정과 JWT 키를 준비합니다.
+- 프론트엔드: Node 24.x·npm 11.x를 선택한 뒤 `Frontend/`에서 `npm ci`로 설치합니다.
+- 프론트 API·이미지·WebSocket·결제 복귀 주소는 `.env.development`(로컬)와 `.env.production`(배포)으로 분리했습니다. 이전 인증 코드는 남아 있어 로그인 연동은 별도 작업이 필요합니다.
+- JDK 17·Node 24 기준 설치·테스트·빌드 결과와 범위는 [검증 기록](docs/verification.md)을 참고하세요.
+- PR CI와 Codex의 백엔드·프론트·전체 검증 버튼 설정은 [자동 검증 안내](docs/ci-and-actions.md)를 참고하세요.
 
 ## 6. 주요 기능
 
