@@ -1,6 +1,7 @@
 package com.demo.nimn.controller.auth;
 
 import com.demo.nimn.dto.auth.*;
+import com.demo.nimn.exception.CustomException;
 import com.demo.nimn.service.auth.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -29,10 +30,11 @@ public class UserController {
         this.userService = userService;
     }
 
-    @Operation(summary = "회원가입", description = "회원가입을 진행합니다")
+    @Operation(summary = "회원가입", description = "SIGNUP 목적의 emailVerificationToken을 소비해 회원가입을 진행한다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "회원가입 성공"),
-            @ApiResponse(responseCode = "403", description = "회원가입 실패", content = @Content()),
+            @ApiResponse(responseCode = "400", description = "필수값 누락 또는 이미 존재하는 이메일", content = @Content()),
+            @ApiResponse(responseCode = "403", description = "이메일 인증 증명 없음·만료·재사용·불일치", content = @Content()),
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content())
     })
     @PostMapping(value = "/signup")
@@ -46,6 +48,9 @@ public class UserController {
 
         UserDetails result = userService.userSignup(userDetails);
         return new ResponseEntity<>(result, HttpStatus.CREATED);
+        } catch (CustomException e) {
+            // 이메일 인증 증명 실패 등은 공통 오류 응답으로 처리한다.
+            throw e;
         } catch (IllegalStateException e) {
             // 중복된 값이 존재할 경우 처리
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -147,11 +152,11 @@ public class UserController {
     }
 
 
-    @Operation(summary = "비로그인 상태 비밀번호 변경", description = "유저의 비밀번호를 변경한다.")
+    @Operation(summary = "비로그인 상태 비밀번호 변경", description = "PASSWORD_RESET 목적의 emailVerificationToken을 소비해 비밀번호를 변경하고 기존 Refresh Token을 폐기한다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "성공, 응답 password 값 = null"),
-            @ApiResponse(responseCode = "401", description = "실패, 응답 password 값 = 중복", content = @Content()),
-            @ApiResponse(responseCode = "403", description = "권한 없음", content = @Content()),
+            @ApiResponse(responseCode = "401", description = "실패, 응답 password 값 = 중복 (사용한 증명 토큰은 소비됨)", content = @Content()),
+            @ApiResponse(responseCode = "403", description = "이메일 인증 증명 없음·만료·재사용·불일치", content = @Content()),
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content())
     })
     @PutMapping("/reset-password")

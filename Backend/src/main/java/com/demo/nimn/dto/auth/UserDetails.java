@@ -1,6 +1,7 @@
 package com.demo.nimn.dto.auth;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,4 +25,7 @@ public class UserDetails {
     private String roadAddress;
     @Schema(description = "상세주소", example = "은미아파트 101동 102호")
     private String detailAddress;
+    @Schema(description = "회원가입 요청에 필요한 이메일 인증 증명 토큰 (/email/check 응답의 verificationToken)")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private String emailVerificationToken;
 }

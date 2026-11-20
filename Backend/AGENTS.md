@@ -20,7 +20,7 @@
 - 쿠키를 변경하면 발급·갱신·삭제의 Path·Domain과 HttpOnly·Secure·SameSite, CSRF 및 프론트 credentials 설정을 함께 검토한다.
 - MVC 업무 예외는 기존 `CustomException`, `ErrorCode`, `ErrorResponse`, `GlobalExceptionHandler`를 우선 활용한다. 클라이언트에 내부 예외 메시지나 스택을 노출하지 않는다.
 - `@RestControllerAdvice`가 앞단 Security 필터의 예외까지 처리한다고 가정하지 않는다. 필터 실패 응답은 해당 필터 또는 Spring Security 예외 처리 경로에서 확인한다.
-- 이메일 인증 성공은 가입·비밀번호 재설정 API에서 서버가 검증해야 한다. 프론트에서 인증 화면을 거쳤다는 사실을 서버 검증의 대체로 삼지 않는다. 현재 서버 검증 누락은 #6에서 다룬다.
+- 이메일 인증 성공은 가입·비밀번호 재설정 API에서 서버가 검증해야 한다. 프론트에서 인증 화면을 거쳤다는 사실을 서버 검증의 대체로 삼지 않는다. 인증번호와 인증 성공 증명(`EmailVerificationService`)은 Redis에 email·목적(`SIGNUP`·`PASSWORD_RESET`)별로 저장하며, 가입·재설정 API는 증명 토큰을 소비한 뒤에만 진행한다.
 
 ## 실행과 검증
 

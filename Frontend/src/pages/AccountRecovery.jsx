@@ -26,6 +26,8 @@ function AccountRecovery() {
     const [isEmailExists, setIsEmailExists] = useState(false);
     const [isCodeSent, setIsCodeSent] = useState(false);
     const [isCodeVerified, setIsCodeVerified] = useState(false);
+    // 서버가 발급한 일회용 이메일 인증 증명. 재설정 요청에 함께 보낸다.
+    const [verificationToken, setVerificationToken] = useState("");
     
 
     const [emailError, setEmailError] = useState("");
@@ -106,7 +108,7 @@ function AccountRecovery() {
                 credentials: "include",
                 body: JSON.stringify({
                     email: email,
-                    code: 0
+                    purpose: "PASSWORD_RESET"
                 }),
             });
 
@@ -115,7 +117,8 @@ function AccountRecovery() {
                 setCodeSuccess("인증번호가 발송되었습니다. 이메일을 확인해주세요.");
                 console.log("인증번호 발송 성공");
             } else {
-                setCodeError("인증번호 발송에 실패했습니다.");
+                const result = await response.json().catch(() => ({}));
+                setCodeError(result.message || "인증번호 발송에 실패했습니다.");
             }
         } catch (error) {
             console.error("Send verification code error: ", error);
@@ -145,6 +148,7 @@ function AccountRecovery() {
                 credentials: "include",
                 body: JSON.stringify({
                     email: email,
+                    purpose: "PASSWORD_RESET",
                     code: parseInt(verificationCode)
                 }),
             });
@@ -153,6 +157,7 @@ function AccountRecovery() {
                 const result = await response.json();
                 if (result.success === true) {
                     setIsCodeVerified(true);
+                    setVerificationToken(result.verificationToken || "");
                     setCodeSuccess(result.message || "이메일 인증이 완료되었습니다.");
                     setCurrentStep(3);
                 } else {
@@ -205,7 +210,8 @@ function AccountRecovery() {
                 credentials: "include",
                 body: JSON.stringify({
                     email: email,
-                    newPassword: newPassword
+                    newPassword: newPassword,
+                    emailVerificationToken: verificationToken
                 }),
             });
 
@@ -217,7 +223,17 @@ function AccountRecovery() {
                     navigate('/login');
                 }, 2000);
             } else {
-                setPasswordError(result.message || "비밀번호 변경에 실패했습니다.");
+                // 증명 토큰은 한 번 쓰면 소비되므로, 실패하면 인증 단계로 돌아가 다시 받는다.
+                const reason = result.password === "중복"
+                    ? "기존과 다른 비밀번호를 입력해주세요."
+                    : (result.message || "비밀번호 변경에 실패했습니다.");
+                setVerificationToken("");
+                setIsCodeVerified(false);
+                setIsCodeSent(false);
+                setVerificationCode("");
+                setCodeSuccess("");
+                setCodeError(reason + " 이메일 인증을 다시 진행해주세요.");
+                setCurrentStep(2);
             }
         } catch (error) {
             console.error("Password reset error: ", error);
@@ -240,6 +256,7 @@ function AccountRecovery() {
             if (currentStep === 2) {
                 setIsCodeSent(false);
                 setIsCodeVerified(false);
+                setVerificationToken("");
                 setVerificationCode("");
                 setCodeError("");
                 setCodeSuccess("");

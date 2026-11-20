@@ -5,6 +5,8 @@ import com.demo.nimn.dto.auth.UserDTO;
 import com.demo.nimn.dto.auth.UserDetails;
 import com.demo.nimn.dto.auth.UsersEmailDTO;
 import com.demo.nimn.entity.auth.Users;
+import com.demo.nimn.enums.EmailVerificationPurpose;
+import com.demo.nimn.service.email.EmailVerificationService;
 import com.demo.nimn.filter.JWTUtil;
 import com.demo.nimn.repository.auth.UserRepository;
 import jakarta.transaction.Transactional;
@@ -21,20 +23,18 @@ public class UserServiceImpl implements UserService {
     private final RefreshTokenService refreshTokenService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final JWTUtil jwtUtil;
+    private final EmailVerificationService emailVerificationService;
 
-    public UserServiceImpl(BCryptPasswordEncoder bCryptPasswordEncoder, @Autowired UserRepository userRepository, RefreshTokenService refreshTokenService, JWTUtil jwtUtil) {
+    public UserServiceImpl(BCryptPasswordEncoder bCryptPasswordEncoder, @Autowired UserRepository userRepository, RefreshTokenService refreshTokenService, JWTUtil jwtUtil, EmailVerificationService emailVerificationService) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.refreshTokenService = refreshTokenService;
         this.jwtUtil = jwtUtil;
+        this.emailVerificationService = emailVerificationService;
     }
 
     @Override
     public UserDetails userSignup(UserDetails userDetails) {
-
-        if (userRepository.existsByEmail(userDetails.getEmail())) {
-            throw new IllegalStateException("동일한 이메일이 이미 존재합니다.");
-        }
 
         if (userDetails.getName() == null || userDetails.getName().isEmpty()) {
             throw new IllegalArgumentException("User name cannot be null or empty");
@@ -44,6 +44,13 @@ public class UserServiceImpl implements UserService {
         }
         if (userDetails.getPassword() == null || userDetails.getPassword().isEmpty()) {
             throw new IllegalArgumentException("User password cannot be null or empty");
+        }
+
+        emailVerificationService.consumeProof(
+                userDetails.getEmailVerificationToken(), userDetails.getEmail(), EmailVerificationPurpose.SIGNUP);
+
+        if (userRepository.existsByEmail(userDetails.getEmail())) {
+            throw new IllegalStateException("동일한 이메일이 이미 존재합니다.");
         }
 
         Users user = Users.builder()
@@ -146,6 +153,10 @@ public class UserServiceImpl implements UserService {
         String email = passwordChangeDto.getEmail();
         String newPassword = passwordChangeDto.getNewPassword();
 
+        // 증명 확인을 가장 먼저 한다. 뒤의 "중복" 응답이 증명 없이 현재 비밀번호를 맞혀 보는 수단이 되지 않게 한다.
+        emailVerificationService.consumeProof(
+                passwordChangeDto.getEmailVerificationToken(), email, EmailVerificationPurpose.PASSWORD_RESET);
+
         UserDTO user = UserDTO.builder()
                 .email(email)
                 .build();
@@ -163,6 +174,8 @@ public class UserServiceImpl implements UserService {
         }
         // 새로운 비밀번호를 encode 한 이후 set
         userEntity.setPassword(bCryptPasswordEncoder.encode(passwordChangeDto.getNewPassword()));
+        // 기존 로그인 세션이 새 비밀번호 이후에도 재발급되지 않게 한다.
+        refreshTokenService.deleteRefreshToken(email);
 
         return user;
     }
