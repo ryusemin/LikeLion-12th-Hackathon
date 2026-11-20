@@ -19,7 +19,8 @@ public class Users {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, unique = true, length = 30)
+    // 254 is the longest deliverable email address (SMTP path limit, #19).
+    @Column(nullable = false, unique = true, length = 254)
     private String email;
 
     @Column(nullable = false)
