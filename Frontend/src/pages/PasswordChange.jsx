@@ -1,4 +1,4 @@
-import { apiUrl } from '../config/endpoints';
+import { apiFetch } from '../api/client';
 import React, { useState ,useEffect} from "react";
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -27,7 +27,7 @@ function PasswordChange() {
     useEffect(() => {
         const fetchUserInfo = async () => {
             try {
-                const response = await fetch(apiUrl('/api/users'), {
+                const response = await apiFetch('/api/users', {
                     method: "GET",
                     credentials: 'include'
                 });
@@ -69,7 +69,7 @@ function PasswordChange() {
         setSuccess("");
 
         try {
-            const response = await fetch(apiUrl('/api/users/password'), {
+            const response = await apiFetch('/api/users/password', {
                 method: "PUT",
                 headers: {
                     'Content-Type': 'application/json',

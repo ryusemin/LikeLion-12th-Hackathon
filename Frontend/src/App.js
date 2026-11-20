@@ -1,4 +1,4 @@
-import { apiUrl } from './config/endpoints';
+import { apiFetch } from './api/client';
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, useLocation } from "react-router-dom";
 import './App.css';
@@ -43,7 +43,7 @@ const AppContent = () => {
 
   const checkAuthStatus = async () => {
     try {
-      const response = await fetch(apiUrl('/api/users'), {
+      const response = await apiFetch('/api/users', {
         method: 'GET',
         credentials: 'include'
       });

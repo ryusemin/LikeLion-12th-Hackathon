@@ -1,4 +1,4 @@
-import { apiUrl } from '../config/endpoints';
+import { apiFetch, logout } from '../api/client';
 import React, { useState, useEffect } from "react";
 import '../CSS/Admin.css';
 import { useNavigate } from 'react-router-dom';
@@ -112,25 +112,11 @@ function Admin() {
     }
     
     try {
-      const response = await fetch(apiUrl('/api/users/logout'), {
-        method: 'POST',
-        credentials: 'include'
-      });
-
-      if (response.ok) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("email");
-        navigate("/");
-      } else {
-        localStorage.removeItem("token");
-        localStorage.removeItem("email");
-        navigate("/");
-      }
+      await logout();
     } catch (error) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("email");
-      navigate("/");
+      // 서버 호출이 실패해도 이 기기의 토큰은 이미 비웠다.
     }
+    navigate("/");
   };
 
   // 가격 선택 핸들러
@@ -142,7 +128,7 @@ function Admin() {
   // 관리자 정보 조회
   const fetchAdminInfo = async () => {
     try {
-      const response = await fetch(apiUrl('/api/users'), {
+      const response = await apiFetch('/api/users', {
         method: 'GET',
         credentials: 'include'
       });
@@ -161,7 +147,7 @@ function Admin() {
   // 주문 목록 조회
   const fetchOrders = async () => {
     try {
-      const response = await fetch(apiUrl('/api/payment/all'), {
+      const response = await apiFetch('/api/payment/all', {
         method: 'GET',
         credentials: 'include'
       });
@@ -192,7 +178,7 @@ function Admin() {
     if (!imagePath) return logo;
     
     try {
-      const response = await fetch(apiUrl(imagePath), {
+      const response = await apiFetch(imagePath, {
         method: 'GET',
         credentials: 'include'
       });
@@ -212,7 +198,7 @@ function Admin() {
   // 식단 목록 조회 (이미지 없이)
   const fetchDietList = async () => {
     try {
-      const response = await fetch(apiUrl('/api/foods/plans'), {
+      const response = await apiFetch('/api/foods/plans', {
         method: 'GET',
         credentials: 'include'
       });
@@ -265,7 +251,7 @@ function Admin() {
     setLoading(true);
     
     try {
-      const response = await fetch(apiUrl(`/api/foods/food?price=${price}`), {
+      const response = await apiFetch(`/api/foods/food?price=${price}`, {
         method: 'POST',
         credentials: 'include'
       });

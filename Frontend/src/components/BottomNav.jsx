@@ -1,4 +1,4 @@
-import { apiUrl } from '../config/endpoints';
+import { apiFetch } from '../api/client';
 import React, { useEffect, useState } from "react";
 import "../CSS/BottomNav.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -13,7 +13,7 @@ const BottomNav = () => {
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
-        const response = await fetch(apiUrl('/api/users'), {
+        const response = await apiFetch('/api/users', {
           method: 'GET',
           credentials: 'include',
           headers: {
@@ -42,7 +42,7 @@ const BottomNav = () => {
   const handleNavigation = async (path, requiresLogin = false) => {
     if (requiresLogin) {
       try {
-        const response = await fetch(apiUrl('/api/users'), {
+        const response = await apiFetch('/api/users', {
           method: 'GET',
           credentials: 'include',
           headers: {

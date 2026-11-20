@@ -1,4 +1,5 @@
-import { apiUrl, notificationSocketUrl } from '../config/endpoints';
+import { notificationSocketUrl } from '../config/endpoints';
+import { apiFetch } from '../api/client';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
@@ -108,7 +109,7 @@ const MainPage = ({ onNotificationCountChange }) => {
   // 사용자 정보 조회 API
   const getUserInfo = useCallback(async () => {
     try {
-      const response = await fetch(apiUrl('/api/users'), {
+      const response = await apiFetch('/api/users', {
         method: "GET",
         credentials: 'include',
       });
@@ -140,7 +141,7 @@ const MainPage = ({ onNotificationCountChange }) => {
     if (!userEmail) return [];
     
     try {
-      const response = await fetch(apiUrl(`/api/notification/all?userEmail=${userEmail}`));
+      const response = await apiFetch(`/api/notification/all?userEmail=${userEmail}`);
 
       if (response.ok) {
         const data = await response.json();

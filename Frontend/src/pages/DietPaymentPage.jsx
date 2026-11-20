@@ -1,4 +1,5 @@
-import { apiUrl, appUrl } from '../config/endpoints';
+import { appUrl } from '../config/endpoints';
+import { apiFetch } from '../api/client';
 import { useLocation, useNavigate } from 'react-router-dom';
 import '../CSS/DietPaymentPage.css';
 
@@ -18,7 +19,7 @@ function DietPaymentPage() {
 
     const getUserEmail = async () => {
         try {
-            const response = await fetch(apiUrl('/api/users'), {
+            const response = await apiFetch('/api/users', {
                 method: 'GET',
                 credentials: 'include'
             });
@@ -59,7 +60,7 @@ function DietPaymentPage() {
                 orderId: String(orderId)
             };
 
-            const paymentResponse = await fetch(apiUrl('/api/payment'), {
+            const paymentResponse = await apiFetch('/api/payment', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -122,7 +123,7 @@ function DietPaymentPage() {
                 const parsedMealData = JSON.parse(dailyDiets);
                 const transformedDailyDiets = transformMealDataToApiFormat(parsedMealData, userEmail);
 
-                const response = await fetch(apiUrl(`/api/diet/weekly/create`), {
+                const response = await apiFetch(`/api/diet/weekly/create`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -156,7 +157,7 @@ function DietPaymentPage() {
             await handleCreatUserDiet();
 
             // 실제 유저 정보 가져오기
-            const userData = await fetch(apiUrl('/api/users'), {
+            const userData = await apiFetch('/api/users', {
                 method: 'GET',
                 credentials: 'include'
             });
@@ -167,7 +168,7 @@ function DietPaymentPage() {
             
             const userInfo = await userData.json();
             
-            const orderResponse = await fetch(apiUrl('/api/order'), {
+            const orderResponse = await apiFetch('/api/order', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

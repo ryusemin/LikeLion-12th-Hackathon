@@ -1,4 +1,4 @@
-import { apiUrl } from '../config/endpoints';
+import { apiFetch } from '../api/client';
 import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -62,7 +62,7 @@ function AccountRecovery() {
         setEmailSuccess("");
 
         try {
-            const response = await fetch(apiUrl(`/api/users/isExist?email=${encodeURIComponent(email)}`), {
+            const response = await apiFetch(`/api/users/isExist?email=${encodeURIComponent(email)}`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -100,7 +100,7 @@ function AccountRecovery() {
         setCodeSuccess("");
 
         try {
-            const response = await fetch(apiUrl('/api/email/send'), {
+            const response = await apiFetch('/api/email/send', {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -140,7 +140,7 @@ function AccountRecovery() {
         setCodeSuccess("");
 
         try {
-            const response = await fetch(apiUrl('/api/email/check'), {
+            const response = await apiFetch('/api/email/check', {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -202,7 +202,7 @@ function AccountRecovery() {
         setPasswordSuccess("");
 
         try {
-            const response = await fetch(apiUrl('/api/users/reset-password'), {
+            const response = await apiFetch('/api/users/reset-password', {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json"

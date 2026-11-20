@@ -1,4 +1,5 @@
 import { apiUrl } from '../config/endpoints';
+import { apiFetch } from '../api/client';
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
 import '../CSS/DietSelectionPage.css';
@@ -163,7 +164,7 @@ function DietSelectionPage() {
             setError(null);
 
             try {
-                const response = await fetch(apiUrl('/api/foods/plans/weekly'), {
+                const response = await apiFetch('/api/foods/plans/weekly', {
                     method: "GET",
                     headers: {
                         "accept": "application/json",

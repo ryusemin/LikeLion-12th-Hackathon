@@ -1,8 +1,7 @@
-import { apiUrl } from '../config/endpoints';
+import { apiFetch, login } from '../api/client';
 import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import '../CSS/Login.css';
-import Cookies from 'js-cookie';
 import logo from '../images/logo.png';
 
 function Login({ onLoginSuccess }) {
@@ -35,29 +34,12 @@ function Login({ onLoginSuccess }) {
         }
 
         try {
-            const response = await fetch(apiUrl('/api/users/login'), {
-                method: "POST",
-                credentials: "include",
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    email: email,
-                    password: password,
-                }),
-            });
+            const result = await login(email, password);
 
-            const result = await response.json();
-
-            if (response.status === 200) {
-                const token = Cookies.get('token');
-                const payload = JSON.parse(atob(token.split('.')[1]));
-
-
+            if (result.ok) {
                 try {
-                    const userResponse = await fetch(apiUrl('/api/users'), {
-                        method: 'GET',
-                        credentials: 'include'
+                    const userResponse = await apiFetch('/api/users', {
+                        method: 'GET'
                     });
 
                     if (userResponse.ok) {
@@ -71,13 +53,9 @@ function Login({ onLoginSuccess }) {
                     console.error('사용자 정보 조회 실패:', error);
                 }
 
-                if (payload.role === "ROLE_ADMIN") {
-                    navigate('/admin');
-                } else if (payload.role === "ROLE_USER") {
-                    navigate('/');
-                }
+                navigate(result.role === "ROLE_ADMIN" ? '/admin' : '/');
             } else {
-                alert("로그인 실패: " + result.message);
+                alert("로그인 실패: " + (result.message || "이메일 또는 비밀번호를 확인해주세요."));
             }
         } catch (error) {
             console.error("Fetch error: ", error);
