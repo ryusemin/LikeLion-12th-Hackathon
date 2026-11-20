@@ -30,8 +30,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final AuthService authService;
 
-    private UserDTO loginRequest;
-
     public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, String customLoginUrl, AuthService authService) {
         this.authenticationManager = authenticationManager;
         this.authService = authService;
@@ -40,18 +38,9 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     }
 
     @Override
-    protected String obtainUsername(HttpServletRequest request) {
-        return loginRequest.getEmail();
-    }
-
-    @Override
-    protected String obtainPassword(HttpServletRequest request) {
-        return loginRequest.getPassword();
-    }
-
-
-    @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
+        // 필터는 모든 요청이 공유하는 하나의 객체이므로 요청 본문은 지역 변수로만 다룬다 (#9).
+        UserDTO loginRequest;
         try {
             loginRequest = objectMapper.readValue(request.getInputStream(), UserDTO.class);
         } catch (IOException e) {
@@ -59,12 +48,9 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
             throw new RuntimeException(e);
         }
 
-        //클라이언트 요청에서 email, password 추출
-        String email = obtainUsername(request);
-        String password = obtainPassword(request);
-
         //스프링 시큐리티에서 email과 password를 검증하기 위해서는 token에 담아야 함
-        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(email, password, null);
+        UsernamePasswordAuthenticationToken authToken =
+                UsernamePasswordAuthenticationToken.unauthenticated(loginRequest.getEmail(), loginRequest.getPassword());
 
         //token에 담은 검증을 위한 AuthenticationManager로 전달
         return authenticationManager.authenticate(authToken);
