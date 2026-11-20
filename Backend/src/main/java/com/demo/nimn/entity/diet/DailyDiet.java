@@ -20,7 +20,7 @@ public class DailyDiet {
 
     private LocalDate date;
 
-    @Column(length = 30)
+    @Column(length = 254) // same limit as Users.email (#19)
     private String userEmail;
 
     @OneToMany(cascade = CascadeType.ALL)
