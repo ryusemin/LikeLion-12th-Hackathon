@@ -120,3 +120,10 @@
 ALTER TABLE t_user MODIFY email VARCHAR(254) NOT NULL;
 ALTER TABLE t_daily_diet MODIFY user_email VARCHAR(254);
 ```
+
+## 로그인 필터 공유 상태 제거 (#9, 2026-11-20)
+
+- 범위: `LoginFilter`는 모든 요청이 공유하는 객체인데, 로그인 요청 본문을 필드 `loginRequest`에 저장한 뒤 다시 읽었다. 이를 지역 변수로 바꾸고 `obtainUsername`·`obtainPassword` 재정의를 제거했다. 인증 전 토큰은 `unauthenticated(...)`로 만든다(기존 3인자 생성자는 인증됨 표시로 생성). #9의 이메일 인증번호 부분은 #6에서 해결했다.
+- `LoginFilterConcurrencyTest`: 한 필터에 8개 스레드가 각 2,000회 로그인하고, 인증 관리자에 전달된 이메일·비밀번호가 각 요청의 값인지 확인한다. 수정 전 코드에서는 다른 사용자의 이메일로 인증되거나 이메일과 비밀번호가 섞여 실패했고, 수정 후 통과한다.
+- `scripts/verify.ps1 -Target Backend` 종료 코드 0. Docker(MySQL 8.4·Redis 7.4.12)에서 가입 201·로그인 200·재설정 후 이전 비밀번호 401·새 비밀번호 200.
+- 미확인: 실제 서버에 동시 로그인을 보내는 검증은 하지 않았다(단위 테스트로 확인). 잘못된 JSON 본문이 500이 되는 동작과 실패 메시지를 JSON에 그대로 넣는 부분은 이번 범위 밖으로 두었다(별도 검토 필요).
