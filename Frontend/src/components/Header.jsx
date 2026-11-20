@@ -1,4 +1,4 @@
-import { apiUrl } from '../config/endpoints';
+import { apiFetch } from '../api/client';
 import React, { useState, useEffect } from "react";
 import '../CSS/Header.css';
 import logo from '../images/logo.png';
@@ -25,7 +25,7 @@ const Header = ({ notificationCount, surveyCount, userInfo }) => {
     const checkLoginStatus = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch(apiUrl('/api/users'), {
+            const response = await apiFetch('/api/users', {
                 method: 'GET',
                 credentials: 'include',
                 headers: {

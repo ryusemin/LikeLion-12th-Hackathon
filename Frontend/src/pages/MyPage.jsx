@@ -1,9 +1,8 @@
-import { apiUrl } from '../config/endpoints';
+import { apiFetch, logout } from '../api/client';
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { Avatar } from 'antd';
 import '../CSS/Mypage.css';
-import Cookies from 'js-cookie';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faReceipt, faSignOutAlt, faUserMinus, faChevronRight, faMapMarkerAlt, faPhone, faLock } from "@fortawesome/free-solid-svg-icons";
 
@@ -19,40 +18,14 @@ function MyPage({ onLogoutSuccess }) {
 
     const handleLogout = async () => {
         try {
-            const response = await fetch(apiUrl('/api/users/logout'), {
-                method: "POST",
-                credentials: 'include',
-            });
-
-            if (response.ok) {
-                if (onLogoutSuccess) {
-                    onLogoutSuccess();
-                }
-                navigate("/");
-            } else {
-                try {
-                    const result = await response.json();
-                    if (result.message === "토큰소멸") {
-                        alert("로그인이 만료되었습니다. 다시 로그인 해주세요");
-                        if (onLogoutSuccess) {
-                            onLogoutSuccess();
-                        }
-                        navigate('/login');
-                        return;
-                    }
-                } catch (e) {
-                }
-                if (onLogoutSuccess) {
-                    onLogoutSuccess();
-                }
-                navigate("/");
-            }
+            await logout();
         } catch (error) {
-            if (onLogoutSuccess) {
-                onLogoutSuccess();
-            }
-            navigate("/");
+            // 서버 호출이 실패해도 이 기기의 토큰은 이미 비웠다.
         }
+        if (onLogoutSuccess) {
+            onLogoutSuccess();
+        }
+        navigate("/");
     };
 
 
@@ -60,7 +33,7 @@ function MyPage({ onLogoutSuccess }) {
     useEffect(() => {
         const handleget = async () => {
             try {
-                const response = await fetch(apiUrl('/api/users'), {
+                const response = await apiFetch('/api/users', {
                     method: "GET",
                     credentials: 'include',
                 });

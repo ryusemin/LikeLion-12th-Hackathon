@@ -2,6 +2,9 @@ package com.demo.nimn.filter;
 
 import com.demo.nimn.dto.auth.CustomUserDetails;
 import com.demo.nimn.entity.auth.Users;
+import com.demo.nimn.exception.ErrorCode;
+import com.demo.nimn.exception.ErrorResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,6 +20,7 @@ import java.util.List;
 public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public JwtAuthorizationFilter(JWTUtil jwtUtil) {
         this.jwtUtil = jwtUtil;
@@ -35,7 +39,6 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
         // Authorization 헤더에서 토큰 추출
         String authorization = request.getHeader("Authorization");
-        System.out.println("Authorization header: " + request.getHeader("Authorization"));
 
         if (authorization != null && authorization.startsWith("Bearer ")) {
             token = authorization.substring(7);
@@ -50,14 +53,20 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
             return;
         }
 
-
-        if (jwtUtil.isExpired(token)) {
-            throw new RuntimeException("Access token expired");
+        // 프론트는 401을 보고 Refresh Token으로 재발급하므로, 토큰 문제는 500이 아니라 401로 응답한다 (#4).
+        String email;
+        String role;
+        try {
+            if (jwtUtil.isExpired(token)) {
+                writeUnauthorized(response, ErrorCode.ACCESS_TOKEN_EXPIRED);
+                return;
+            }
+            email = jwtUtil.getUsername(token);
+            role = jwtUtil.getRole(token);
+        } catch (RuntimeException e) {
+            writeUnauthorized(response, ErrorCode.INVALID_ACCESS_TOKEN);
+            return;
         }
-
-        //토큰에서 email과 role 획득
-        String email = jwtUtil.getUsername(token);
-        String role = jwtUtil.getRole(token);
 
         //userEntity를 생성하여 값 set
         Users userEntity = Users.builder()
@@ -86,6 +95,17 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
             "/docs",
             "/api-docs"
     );
+
+    private void writeUnauthorized(HttpServletResponse response, ErrorCode errorCode) throws IOException {
+        response.setStatus(errorCode.getStatus().value());
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        objectMapper.writeValue(response.getWriter(), ErrorResponse.builder()
+                .status(errorCode.getStatus().value())
+                .message(errorCode.getMessage())
+                .code(errorCode.name())
+                .build());
+    }
 
     private boolean isPermitted(String uri) {
         return WHITELIST.stream().anyMatch(uri::startsWith);

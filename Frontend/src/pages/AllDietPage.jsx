@@ -1,4 +1,5 @@
 import { apiUrl } from '../config/endpoints';
+import { apiFetch } from '../api/client';
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LeftOutlined, RightOutlined, StarFilled } from '@ant-design/icons';
@@ -21,7 +22,7 @@ function AllDietPage() {
     // 음식 목록 조회 API
     const getAllFoodsAPI = async () => {
         try {
-            const response = await fetch(apiUrl('/api/foods/plans'), {
+            const response = await apiFetch('/api/foods/plans', {
                 method: "GET",
                 credentials: 'include',
             });
@@ -40,7 +41,7 @@ function AllDietPage() {
     // 전체 리뷰 조회 API (summary가 전체 조회)
     const getAllReviewsAPI = async () => {
         try {
-            const response = await fetch(apiUrl('/api/review/summary'), {
+            const response = await apiFetch('/api/review/summary', {
                 method: "GET",
                 credentials: 'include',
             });

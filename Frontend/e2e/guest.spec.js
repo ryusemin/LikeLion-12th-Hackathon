@@ -19,6 +19,10 @@ test.beforeEach(async ({ page }) => {
       if (request.method() === 'GET' && url.pathname === '/api/users') {
         return route.fulfill({ status: 401, json: { message: '비로그인 테스트' } });
       }
+      // 페이지를 열면 Refresh 쿠키로 세션 복원을 시도한다. 비로그인이면 쿠키가 없어 401이다.
+      if (request.method() === 'POST' && url.pathname === '/api/auth/refresh') {
+        return route.fulfill({ status: 401, json: { code: 'REFRESH_TOKEN_NOT_FOUND' } });
+      }
       unexpectedRequests.push(`${request.method()} ${url.pathname}`);
       return route.abort();
     }
@@ -30,9 +34,13 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
+const isRefresh = request => request.method === 'POST' && request.path === '/api/auth/refresh';
+
 test.afterEach(() => {
   expect(unexpectedRequests, '예상하지 않은 API 또는 외부 접속').toEqual([]);
   expect(pageErrors, '브라우저 실행 오류').toEqual([]);
+  // 여러 화면이 동시에 API를 불러도 세션 복원은 페이지당 한 번이다.
+  expect(apiRequests.filter(isRefresh).length, '세션 복원 요청 수').toBeLessThanOrEqual(1);
 });
 
 test('비로그인 홈에서 주문하면 로그인 화면으로 이동한다', async ({ page }) => {
@@ -52,7 +60,7 @@ test('빈 로그인은 경고를 표시하고 로그인 API를 호출하지 않�
   }));
   await page.getByRole('button', { name: '로그인', exact: true }).click();
   expect(await dialogMessage).toBe('아이디와 비밀번호를 모두 입력해주세요.');
-  expect(apiRequests.some(request => request.method === 'POST')).toBe(false);
+  expect(apiRequests.some(request => request.path === '/api/auth/login')).toBe(false);
 });
 
 test('가입 초기 화면은 이메일 확인과 가입 버튼을 비활성화한다', async ({ page }) => {
@@ -60,5 +68,5 @@ test('가입 초기 화면은 이메일 확인과 가입 버튼을 비활성화�
   await expect(page.getByLabel('이메일', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: '중복확인', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: '회원가입', exact: true })).toBeDisabled();
-  expect(apiRequests.some(request => request.method === 'POST')).toBe(false);
+  expect(apiRequests.some(request => request.method === 'POST' && !isRefresh(request))).toBe(false);
 });

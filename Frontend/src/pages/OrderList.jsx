@@ -1,4 +1,4 @@
-import { apiUrl } from '../config/endpoints';
+import { apiFetch } from '../api/client';
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import '../CSS/OrderList.css';
@@ -15,7 +15,7 @@ function OrderList() {
     useEffect(() => {
         const handleGetUser = async () => {
             try {
-                const response = await fetch(apiUrl('/api/users'), {
+                const response = await apiFetch('/api/users', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -59,7 +59,7 @@ function OrderList() {
     useEffect(() => {
         const handlePaymentGet = async () => {
             try {
-                const response = await fetch(apiUrl(`/api/payment?purchaser=${userEmail}`), {
+                const response = await apiFetch(`/api/payment?purchaser=${userEmail}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
