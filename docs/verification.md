@@ -130,10 +130,10 @@ ALTER TABLE t_daily_diet MODIFY user_email VARCHAR(254);
 
 ## 프론트 Bearer 인증 연동 (#4, 2026-11-20)
 
-- 범위: `Frontend/src/api/client.js`를 추가하고 화면의 API 호출을 모두 `apiFetch`로 바꿨다. Access Token은 모듈 변수에만 보관하고, 페이지를 열면 첫 요청 전에 `/api/auth/refresh`로 한 번 복원한다. 401이면 진행 중인 재발급을 공유해 한 번만 재시도하고, 재발급이 실패하면 토큰을 비운다. 로그인·로그아웃은 `/api/auth/login`·`/api/auth/logout`을 사용하고, 관리자 화면 분기는 Access Token payload의 역할로 한다.
+- 범위: `Frontend/src/api/client.js`를 추가하고 화면의 API 호출을 모두 `apiFetch`로 바꿨다. Access Token은 모듈 변수에만 보관하고, 페이지를 열면 첫 요청 전에 `/api/auth/refresh`로 한 번 복원한다. 401이면 진행 중인 재발급을 공유해 한 번만 재시도하고, 재발급이 실패하면 토큰을 비운 뒤 비로그인 요청으로 다시 보낸다. 로그인·로그아웃 이전에 시작한 재발급 결과가 늦게 도착하면 버린다. 로그인·로그아웃은 `/api/auth/login`·`/api/auth/logout`을 사용하고, 관리자 화면 분기는 Access Token payload의 역할로 한다.
 - 서버: `JwtAuthorizationFilter`가 만료 토큰에 401 `ACCESS_TOKEN_EXPIRED`, 잘못된 토큰에 401 `INVALID_ACCESS_TOKEN`을 반환한다(이전에는 예외로 500). Authorization 헤더를 표준 출력에 기록하던 코드를 제거했다(#13 관련).
-- 테스트: `client.test.js` 7개(메모리 보관과 저장소 미사용, 복원 1회, 동시 401의 재발급 합치기와 1회 재시도, 재발급 실패 시 정리, 로그아웃, 로그인 실패), `JwtAuthorizationFilterTest` 4개. 필터 테스트는 수정 전 코드에서 만료·잘못된 토큰 2개가 실패하는 것을 확인했다.
+- 테스트: `client.test.js` 9개(메모리 보관과 저장소 미사용, 복원 1회, 동시 401의 재발급 합치기와 1회 재시도, 재발급 실패 시 정리와 비로그인 재요청, 로그인·로그아웃보다 늦게 끝난 재발급 무시, 로그아웃, 로그인 실패). 리뷰에서 찾은 마지막 3개 경우는 수정 전 코드에서 실패하는 것을 확인했다, `JwtAuthorizationFilterTest` 4개. 필터 테스트는 수정 전 코드에서 만료·잘못된 토큰 2개가 실패하는 것을 확인했다.
 - Playwright: 비로그인 화면 검사에 세션 복원(`refresh` 401) fixture를 추가하고, 페이지당 복원 요청이 1회 이하인지 확인한다. 로그인·가입 API를 호출하지 않는다는 기존 검사는 유지했다.
-- `scripts/verify.ps1` Frontend·Backend·Browser 종료 코드 0. 프론트 lint 오류 0개(경고 31개), Jest 15개, Chromium 3개.
+- `scripts/verify.ps1` Frontend·Backend·Browser 종료 코드 0. 프론트 lint 오류 0개(경고 31개), Jest 17개, Chromium 3개.
 - 실제 연동(Docker backend·frontend·MySQL 8.4·Redis 7.4.12, 내장 브라우저): 로그인 → `/api/users` 200, 새로고침 → `refresh` 1회 200 후 동시 `/api/users` 5건 200, 저장소에 토큰 없음(`localStorage`에는 기존 `isLoggedIn`만 남음), 로그아웃 → 200·Redis `refresh:{email}` 삭제·재접속 시 비로그인. 관리자 역할 계정은 `/admin`으로 이동하고 관리자 로그아웃도 같은 결과.
 - 미확인·범위 밖: Access Token 1시간 만료 후 자동 재발급은 실제 시간 경과로 확인하지 않았다(필터 401과 클라이언트 재시도를 각각 테스트로 확인). 토큰 없는 `/api/users`는 여전히 500이며 접근 권한(#7)에서 다룬다. 여러 탭 동시 재발급 경합(#11), WebSocket 인증(#10)은 범위 밖이다.

@@ -82,18 +82,59 @@ test('동시 401은 재발급을 한 번으로 합치고 각 요청을 한 번�
   expect(countOf('/api/users')).toBe(6);
 });
 
-test('재발급도 실패하면 재시도하지 않고 토큰을 비운다', async () => {
+test('재발급도 실패하면 토큰을 비우고 비로그인 요청으로 한 번 다시 보낸다', async () => {
   let refreshes = 0;
   mockServer({
     '/api/auth/refresh': () => (refreshes++ === 0 ? json(200, { accessToken: 'expired' }) : json(401)),
-    '/api/users': () => json(401),
+    '/api/foods/plans': (init) => json(new Headers(init.headers).has('Authorization') ? 401 : 200),
   });
 
-  expect((await client.apiFetch('/api/users')).status).toBe(401);
-  expect(countOf('/api/users')).toBe(1);
+  expect((await client.apiFetch('/api/foods/plans')).status).toBe(200);
+  await client.apiFetch('/api/foods/plans');
+  expect(authOf('/api/foods/plans')).toEqual(['Bearer expired', null, null]);
+});
 
+const deferred = () => {
+  let resolve;
+  const promise = new Promise((r) => { resolve = r; });
+  return { promise, resolve };
+};
+
+test('로그인보다 늦게 끝난 세션 복원은 로그인 토큰을 덮어쓰지 않는다', async () => {
+  const slowRefresh = deferred();
+  mockServer({
+    '/api/auth/refresh': () => slowRefresh.promise,
+    '/api/auth/login': () => json(200, { accessToken: 'logged-in' }),
+    '/api/users': () => json(200),
+  });
+
+  const pending = client.apiFetch('/api/users');
+  await client.login('a@t.invalid', 'pw');
+  slowRefresh.resolve(await json(401));
+  await pending;
   await client.apiFetch('/api/users');
-  expect(authOf('/api/users')).toEqual(['Bearer expired', null]);
+
+  expect(authOf('/api/users')).toEqual(['Bearer logged-in', 'Bearer logged-in']);
+});
+
+test('로그아웃보다 늦게 끝난 재발급은 토큰을 되살리지 않는다', async () => {
+  const slowRefresh = deferred();
+  mockServer({
+    '/api/auth/login': () => json(200, { accessToken: 'expired' }),
+    '/api/auth/refresh': () => slowRefresh.promise,
+    '/api/auth/logout': () => json(200),
+    '/api/users': (init) => json(new Headers(init.headers).has('Authorization') ? 401 : 500),
+  });
+
+  await client.login('a@t.invalid', 'pw');
+  const pending = client.apiFetch('/api/users');
+  await new Promise((r) => setTimeout(r, 0)); // 401을 받고 재발급을 시작할 때까지 진행
+  await client.logout();
+  slowRefresh.resolve(await json(200, { accessToken: 'revived' }));
+  await pending;
+  await client.apiFetch('/api/users');
+
+  expect(authOf('/api/users')).toEqual(['Bearer expired', null, null]);
 });
 
 test('로그아웃하면 서버에 알리고 토큰을 비우며 다시 복원하지 않는다', async () => {
