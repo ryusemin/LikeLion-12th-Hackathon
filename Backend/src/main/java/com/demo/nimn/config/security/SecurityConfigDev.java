@@ -25,13 +25,16 @@ public class SecurityConfigDev {
     //AuthenticationManager가 인자로 받을 AuthenticationConfiguraion 객체 생성자 주입
     private final AuthenticationConfiguration authenticationConfiguration;
     private final AuthService authService;
+    private final SecurityErrorHandler securityErrorHandler;
 
     public SecurityConfigDev(AuthenticationConfiguration authenticationConfiguration,
                              JWTUtil jwtUtil,
-                             AuthService authService) {
+                             AuthService authService,
+                             SecurityErrorHandler securityErrorHandler) {
         this.authenticationConfiguration = authenticationConfiguration;
         this.jwtUtil = jwtUtil;
         this.authService = authService;
+        this.securityErrorHandler = securityErrorHandler;
     }
 
 
@@ -74,16 +77,9 @@ public class SecurityConfigDev {
                     return corsConfig;
                 }));
 
-        // 모든 요청을 허용하도록 설정
-        http.authorizeHttpRequests(auth -> auth
-                .anyRequest().permitAll());
+        // 공개·회원·관리자 API 접근 규칙 (#7)
+        ApiAccessRules.apply(http, securityErrorHandler);
 
-//        //경로별 인가 작업
-//        http
-//                .authorizeHttpRequests((auth) -> auth
-//                        .requestMatchers("/api/users/login", "/api/users/logout","/api/users/isExist", "/api/users/signup", "/api/email/**", "/swagger-ui/**", "/docs/**", "/api-docs/**", "/ws/**", "/api/notification/**").permitAll() // 해당 경로에 대해 모든 사용자가 접근할 수 있도록 허용. 인증되지 않은 사용자도 접근가능
-//                        .requestMatchers("/api/users/all").hasRole("ADMIN") // ROLE_ADMIN 권한을 가진 사용자만 접근할 수 있도록 설정
-//                        .anyRequest().authenticated()); // 그 외의 모든 경로는 인증된 사용자라면 접근 가능
 
 
         //JWTFilter 등록

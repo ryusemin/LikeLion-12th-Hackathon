@@ -95,7 +95,7 @@ $localEnvText = $localEnvText.Replace('JWT_SECRET=REPLACE_WITH_BASE64_32_BYTE_RA
 
 | 설정 | 용도·로컬 기본값 |
 | --- | --- |
-| `SPRING_PROFILES_ACTIVE` | 로컬은 `dev`; 현재 dev도 전체 요청 허용이므로 격리된 로컬에서 사용 |
+| `SPRING_PROFILES_ACTIVE` | 로컬은 `dev`; dev·prod 모두 같은 접근 규칙(공개·회원·관리자, #7)을 사용 |
 | `DATABASE_USERNAME`, `DATABASE_PASSWORD` | 기존 Compose의 로컬 데모 계정; 운영용 자격증명이 아님 |
 | `spring.datasource.url` | 기존 기본 DB와 구분한 `nimn_local` 사용 |
 | `spring.data.redis.host`, `spring.data.redis.port` | 로컬 Redis 위치 |
