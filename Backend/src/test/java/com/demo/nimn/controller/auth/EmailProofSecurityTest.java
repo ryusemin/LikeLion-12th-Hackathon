@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Runs through the dev Security filter chain and /api path prefix (currently permitAll, #7) so the
+ * Runs through the dev Security filter chain and /api path prefix (reset-password and signup are public, #7) so the
  * email proof is the only thing standing between an anonymous request and the account.
  */
 @SpringBootTest(properties = {

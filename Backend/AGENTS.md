@@ -14,7 +14,7 @@
 
 - 현재 Access Token은 로그인·재발급 응답 JSON의 `accessToken`으로 발급하고, 일반 요청의 `Authorization: Bearer {accessToken}`에서 검증한다. 응답 위치와 요청 위치를 구분한다.
 - 현재 Refresh Token은 `refreshToken` HttpOnly 쿠키로 전달하며, Redis의 `refresh:{email}`에 7일 TTL로 저장한다. 인증 구조를 변경할 때는 필터·서비스·컨트롤러·프론트 호출을 함께 확인한다.
-- 현재 dev/prod의 전체 요청 허용은 보완 대상이다(#7 접근 권한, #8 소유자 검증). 테스트 편의를 위해 인가를 더 완화하지 않는다. 로그인 확인과 관리자 권한·데이터 소유자 검증은 각각 검토한다.
+- dev/prod의 접근 규칙은 `config/security/ApiAccessRules.java` 한 곳에서 공개·회원(`authenticated`)·관리자(`ROLE_ADMIN`)로 나눈다. 새 API는 기본적으로 회원 전용이며, 공개·관리자 API는 이 파일에 경로와 HTTP 메서드를 함께 추가하고 `AbstractApiAccessControlTest`에 허용·거부 검사를 넣는다. 경로 전체가 관리자용이면 메서드 없이 지정한다. Spring MVC가 HEAD를 GET 핸들러로 실행하므로 GET만 지정하면 HEAD로 우회된다. 인가 거부는 `SecurityErrorHandler`가 401 `AUTHENTICATION_REQUIRED`·403 `ACCESS_DENIED`로 응답한다. 현재 본인 데이터인지 확인하는 소유자 검증은 보완 대상이다(#8). 테스트 편의를 위해 인가를 더 완화하지 않는다. 로그인 확인과 관리자 권한·데이터 소유자 검증은 각각 검토한다.
 - 인증된 사용자 정보는 SecurityContext의 Principal을 기준으로 삼는다. 요청 본문의 이메일이나 사용자 ID만으로 타인의 데이터를 변경할 권한을 인정하지 않는다.
 - 토큰 재발급에서는 서명·만료·용도, Redis 저장값, Rotation의 동시성·재사용 정책을 확인한다. Redis의 조회·삭제·저장을 각각 호출하면 원자적 교체가 아니다. 현재 구현의 보완은 #11에서 다룬다.
 - 쿠키를 변경하면 발급·갱신·삭제의 Path·Domain과 HttpOnly·Secure·SameSite, CSRF 및 프론트 credentials 설정을 함께 검토한다.
