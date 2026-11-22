@@ -87,5 +87,6 @@ GitHub의 Ubuntu 실행 결과와 Codex UI 표시는 아직 확인하지 않았�
 - 리뷰 언어는 한국어(`ko-KR`), 강도는 `chill`(실제 문제 위주)이다. 초안 PR과 `docs/issues/`, lockfile, 빌드 산출물은 리뷰하지 않는다.
 - 경로별 지시(`path_instructions`)로 Security 접근 규칙·소유자 검증(#8)·테스트·프론트 토큰 저장·`.ps1`/`.sh` 짝 맞춤 등 이 저장소의 지침을 확인하게 했다.
 - `request_changes_workflow: false`로 두어 CodeRabbit이 병합을 막지 않는다. 리뷰는 참고 의견이며, 병합 판단은 사람의 리뷰와 CI로 한다.
-- PR 댓글에 `@coderabbitai review`(증분 리뷰), `@coderabbitai full review`(전체 다시 리뷰)로 직접 요청할 수 있다.
+- 자동 리뷰는 한 PR에서 커밋 5개를 리뷰하면 멈춘다(`auto_pause_after_reviewed_commits` 기본값 5, 무료 한도를 아끼려고 기본값을 유지한다). 이후 커밋에도 자동 리뷰를 다시 받으려면 PR 댓글에 `@coderabbitai resume`을 남긴다.
+- 한 번만 리뷰를 요청할 때는 `@coderabbitai review`(증분 리뷰) 또는 `@coderabbitai full review`(전체 다시 리뷰)를 쓴다. 이 명령들은 멈춘 자동 리뷰를 다시 켜지 않는다.
 - 리뷰 지적은 실제 코드와 테스트로 판단한다. 맞는 지적은 고치고 관련 검사를 다시 실행하며, 틀린 지적은 근거를 PR에 남긴다. 설정 파일 변경은 해당 PR에서 바로 적용되므로, 설정 오류가 있으면 CodeRabbit 댓글에 표시된다.
