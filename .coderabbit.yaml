@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# CodeRabbit PR 자동 리뷰 설정. 사용법과 판단 기준은 docs/ci-and-actions.md를 참고한다.
+language: ko-KR
+
+reviews:
+  # chill: 실제 문제 위주로 지적하고 사소한 스타일 지적은 줄인다.
+  profile: chill
+  # 리뷰는 참고 의견이다. 병합 차단 여부는 사람의 리뷰와 CI로 정한다.
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  auto_review:
+    enabled: true
+    drafts: false
+    # PR 대상 브랜치는 develop이다(기본 브랜치).
+    base_branches:
+      - develop
+  path_filters:
+    # 이슈 등록용 초안과 생성물은 리뷰하지 않는다.
+    - "!docs/issues/**"
+    - "!**/package-lock.json"
+    - "!Frontend/build/**"
+    - "!Backend/build/**"
+  path_instructions:
+    - path: "Backend/src/main/java/**/config/security/**"
+      instructions: |
+        Spring Security 접근 규칙이다. 공개·회원·관리자 분류가 맞는지, 관리자 규칙이 공개 규칙보다 앞에 있는지,
+        HTTP 메서드 지정으로 우회(예: HEAD가 GET 핸들러로 실행됨)가 생기지 않는지 확인한다.
+        새 API는 기본적으로 회원 전용이어야 한다. 테스트 편의를 위해 인가를 완화하는 변경은 지적한다.
+    - path: "Backend/src/main/java/**"
+      instructions: |
+        Backend/AGENTS.md를 따른다. 사용자 식별은 SecurityContext의 Principal을 기준으로 하며,
+        요청 본문·파라미터의 이메일이나 ID만으로 타인 데이터를 조회·변경하는 코드는 지적한다(#8).
+        업무 예외는 CustomException·ErrorCode·ErrorResponse를 쓰고 내부 예외 메시지나 스택을 응답에 노출하지 않는다.
+        비밀번호·토큰·개인정보를 로그에 남기는 코드는 지적한다.
+    - path: "Backend/src/test/java/**"
+      instructions: |
+        인증·인가·데이터 변경 테스트는 실제 SecurityFilterChain을 거치는지, 거부 후 데이터가 바뀌지 않았는지까지 확인하는지 본다.
+        테스트가 운영 DB·실제 메일·결제·AI API를 호출하지 않는지 확인한다.
+    - path: "Frontend/src/**"
+      instructions: |
+        Frontend/AGENTS.md를 따른다. API 호출은 src/api/client.js의 apiFetch를 거쳐야 하고,
+        Access Token을 localStorage 등 브라우저 저장소에 저장하면 지적한다. 화면 숨김을 서버 권한 검사의 대체로 보지 않는다.
+        로딩·실패 상태 처리와 입력 폼의 접근성(레이블·키보드)을 확인한다.
+    - path: "scripts/**"
+      instructions: |
+        Windows(.ps1)와 macOS(.sh) 스크립트는 같은 대상·순서로 검사해야 한다. 한쪽만 바뀌었으면 지적한다.
+        비밀값을 출력하거나 기존 .env를 덮어쓰는 동작은 지적한다.
+
+chat:
+  auto_reply: true
