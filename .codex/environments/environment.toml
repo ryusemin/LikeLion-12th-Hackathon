@@ -33,3 +33,33 @@ name = "Docker 실행 상태 검증"
 icon = "test"
 command = "powershell -NoProfile -File scripts/verify.ps1 -Target Runtime"
 platform = "win32"
+
+[[actions]]
+name = "Backend 검증"
+icon = "test"
+command = "bash scripts/verify.sh backend"
+platform = "darwin"
+
+[[actions]]
+name = "Frontend 검증"
+icon = "test"
+command = "bash scripts/verify.sh frontend"
+platform = "darwin"
+
+[[actions]]
+name = "전체 검증"
+icon = "test"
+command = "bash scripts/verify.sh all"
+platform = "darwin"
+
+[[actions]]
+name = "브라우저 검증"
+icon = "test"
+command = "bash scripts/verify.sh browser"
+platform = "darwin"
+
+[[actions]]
+name = "Docker 실행 상태 검증"
+icon = "test"
+command = "bash scripts/verify.sh runtime"
+platform = "darwin"

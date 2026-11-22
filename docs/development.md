@@ -43,6 +43,27 @@ $env:GRADLE_USER_HOME = Join-Path (Get-Location).Path '.local-tools/gradle'
 $env:npm_config_cache = Join-Path (Get-Location).Path '.local-tools/npm-cache'
 ```
 
+### macOS(zsh)
+
+이 문서의 PowerShell 명령은 macOS에서 다음처럼 바꿔 실행한다. 명령표의 `npm.cmd`·`npx.cmd`·`.\gradlew.bat`는 `npm`·`npx`·`./gradlew`로, `scripts/*.ps1`은 같은 이름의 `scripts/*.sh`를 `bash`로 실행한다. 맥에서는 `/usr/libexec/java_home -V`로 설치된 JDK를 확인할 수 있다. `scripts/verify.sh`는 JDK 17이 설치돼 있으면 기본 JDK가 다른 버전이어도 17을 선택한다.
+
+```bash
+# 작업 위치: 저장소 루트 / macOS zsh
+java -version
+/usr/libexec/java_home -V
+node --version
+npm --version
+docker compose version
+```
+
+백엔드 `nimn.env` 준비와 JWT 키 생성은 아래 명령으로 한다. 기존 파일은 덮어쓰지 않고, 키는 화면에 출력하지 않는다.
+
+```bash
+# 작업 위치: Backend / macOS zsh
+[ -e nimn.env ] && echo '기존 nimn.env가 있습니다. 덮어쓰지 말고 예제와 비교하세요.' || cp nimn.env.example nimn.env
+JWT_KEY="$(openssl rand -base64 32)" awk '$0 == "JWT_SECRET=REPLACE_WITH_BASE64_32_BYTE_RANDOM_KEY" { print "JWT_SECRET=" ENVIRON["JWT_KEY"]; next } { print }' nimn.env > nimn.env.tmp && mv nimn.env.tmp nimn.env
+```
+
 ## 2. 백엔드 환경변수 준비
 
 `Backend/src/main/resources/application.properties`는 작업 디렉터리의 `nimn.env`를 Java properties 형식으로 읽는다. 백엔드 명령은 `Backend/`에서 실행한다. 파일에는 `export`나 셸 명령을 넣지 않는다.

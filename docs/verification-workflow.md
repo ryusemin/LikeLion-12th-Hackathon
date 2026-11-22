@@ -15,7 +15,7 @@
 
 ## 검사 선택
 
-저장소 루트의 Windows PowerShell에서 실행한다. 설치·환경 준비는 [개발 환경](development.md), Docker 준비는 [Docker 실행](docker-development.md)을 따른다.
+저장소 루트의 Windows PowerShell에서 실행한다. macOS(zsh)에서는 같은 대상을 `bash scripts/verify.sh backend|frontend|browser|all|runtime`으로 실행한다. 설치·환경 준비는 [개발 환경](development.md), Docker 준비는 [Docker 실행](docker-development.md)을 따른다.
 
 | 명령 | 확인 범위 | 보장하지 않는 것 |
 | --- | --- | --- |
@@ -25,11 +25,11 @@
 | `powershell -NoProfile -File scripts/verify.ps1 -Target All` | 위 세 가지 코드·화면 검사, 실행 상태 스크립트의 실패 처리 검사 | Docker 실행 상태·전체 업무 기능 |
 | `powershell -NoProfile -File scripts/verify.ps1 -Target Runtime` | 실행 중인 네 서비스의 health, 홈·Swagger·OpenAPI 응답, Redis PING | 현재 소스와 이미지 일치·데이터 영속성·인증 연동 |
 
-브라우저 검사는 최초 한 번 `Frontend/`에서 `npx.cmd playwright install chromium`이 필요하다. 같은 디렉터리에서 `npm.cmd run test:e2e`로 직접 실행할 수 있다. 로컬·CI 모두 현재 소스로 3001번 개발 서버를 새로 시작하고 검사 후 종료한다. 해당 포트가 이미 사용 중이면 실패하며 기존 Docker의 3000번 서버는 유지한다. API 응답은 대체하며 외부 접속은 차단한다. 실패한 화면·trace는 `Frontend/test-results/`, HTML 보고서는 `Frontend/playwright-report/`에 생성한다. 이 파일들은 Git에 올리지 않는다.
+브라우저 검사는 최초 한 번 `Frontend/`에서 `npx.cmd playwright install chromium`(macOS는 `npx playwright install chromium`)이 필요하다. 같은 디렉터리에서 `npm.cmd run test:e2e`(macOS는 `npm run test:e2e`)로 직접 실행할 수 있다. 로컬·CI 모두 현재 소스로 3001번 개발 서버를 새로 시작하고 검사 후 종료한다. 해당 포트가 이미 사용 중이면 실패하며 기존 Docker의 3000번 서버는 유지한다. API 응답은 대체하며 외부 접속은 차단한다. 실패한 화면·trace는 `Frontend/test-results/`, HTML 보고서는 `Frontend/playwright-report/`에 생성한다. 이 파일들은 Git에 올리지 않는다.
 
 변경에 해당하는 검사부터 실행한다. 프론트 화면 변경에는 브라우저 검사를 포함하고, 백엔드 인증·인가에는 실제 Security 필터가 켜진 허용·거부 테스트를 추가한다. 기존 H2·mock 테스트나 필터를 끈 Swagger 테스트는 이를 대체하지 않는다. 환경 설정 변경은 로컬·배포 주소 선택을, Docker 변경은 이미지 빌드와 실행 검사를 확인한다. 문서만 바꾼 경우 전체 빌드를 반복하지 않는다.
 
-실행 상태 스크립트 자체를 바꾸면 `powershell -NoProfile -File scripts/tests/verify-runtime.test.ps1`로 서비스 누락·unhealthy 상태의 실패 처리와 작업 경로 복원을 확인한다. 실제 Docker는 사용하지 않는 격리 검사다.
+실행 상태 스크립트 자체를 바꾸면 `powershell -NoProfile -File scripts/tests/verify-runtime.test.ps1`로 서비스 누락·unhealthy 상태의 실패 처리와 작업 경로 복원을 확인한다. macOS용 `verify-runtime.sh`를 바꾸면 `bash scripts/tests/verify-runtime.test.sh`로 같은 실패 처리를 확인한다. 실제 Docker는 사용하지 않는 격리 검사다.
 
 ## 실행 대상과 증거
 

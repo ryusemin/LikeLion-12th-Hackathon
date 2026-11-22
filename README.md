@@ -94,6 +94,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/init-docker-env.ps1
 docker compose up -d --build --wait --wait-timeout 240
 ```
 
+macOS에서는 첫 줄 대신 `bash scripts/init-docker-env.sh`를 실행합니다.
+
 환경변수 준비부터 로컬 DB·서버 실행, Windows·Linux 검증 명령은 [로컬 개발 환경 안내](docs/development.md)를 참고하세요.
 
 - 백엔드: `Backend/nimn.env.example`을 참고해 로컬 설정과 JWT 키를 준비합니다.

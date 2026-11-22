@@ -7,7 +7,7 @@
 - 현재 동작은 작업 브랜치의 코드와 테스트로 확인한다. README·노션·주석이 코드와 다르면 차이를 설명하고, 문서만으로 구현 완료를 판단하지 않는다.
 - 지침에 '현재'로 적은 미해결 상태에는 관련 GitHub 이슈 번호를 함께 적는다. 그 이슈를 수정하는 작업에서 해당 지침 줄도 갱신하거나 삭제한다.
 - 실행 환경·환경변수·설치 명령을 다룰 때는 `docs/development.md`와 `Backend/nimn.env.example`을 참고한다.
-- 자동 검증과 Codex 실행 Actions를 다룰 때는 `docs/ci-and-actions.md`를 참고한다. Windows 전체 검증 진입점은 `scripts/verify.ps1`이다.
+- 자동 검증과 Codex 실행 Actions를 다룰 때는 `docs/ci-and-actions.md`를 참고한다. 전체 검증 진입점은 Windows `scripts/verify.ps1`, macOS `scripts/verify.sh`이며 두 스크립트는 같은 대상·순서로 검사한다. 한쪽을 바꾸면 다른 쪽도 함께 갱신한다.
 
 ## 작업 방식
 
@@ -32,7 +32,7 @@
 ## 실행 환경과 외부 작업
 
 - 기본 로컬 환경은 Windows PowerShell이다. 명령을 안내할 때 작업 디렉터리와 셸을 명시한다. Linux CI 명령을 그대로 로컬 명령으로 제시하지 않는다.
-- macOS(zsh)에서 작업할 때는 각 지침 명령표의 `Linux / CI` 열 명령(`./gradlew`, `npm`)을 사용한다.
+- macOS(zsh)에서 작업할 때는 각 지침 명령표의 `Linux / CI` 열 명령(`./gradlew`, `npm`)을 사용하고, `scripts/`의 `.ps1` 대신 같은 이름의 `.sh`를 `bash`로 실행한다.
 - 비밀번호·JWT 서명키·API 키·실제 토큰·개인정보를 코드, 문서, 로그 또는 도구 출력에 노출하지 않는다. 환경변수는 이름과 용도를 중심으로 확인한다.
 - `.gitignore`는 Git 추적 설정이며 AI 도구의 파일 접근을 막는 장치가 아니다. 실제 접근 권한은 실행 환경의 정책을 따른다.
 - 일반 검증에는 로컬 DB와 외부 호출 대체를 사용한다. 운영 DB 변경, 실제 결제·메일 발송, 배포·push는 요청에서 승인된 범위에서만 수행한다.

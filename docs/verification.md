@@ -137,3 +137,14 @@ ALTER TABLE t_daily_diet MODIFY user_email VARCHAR(254);
 - `scripts/verify.ps1` Frontend·Backend·Browser 종료 코드 0. 프론트 lint 오류 0개(경고 31개), Jest 17개, Chromium 3개.
 - 실제 연동(Docker backend·frontend·MySQL 8.4·Redis 7.4.12, 내장 브라우저): 로그인 → `/api/users` 200, 새로고침 → `refresh` 1회 200 후 동시 `/api/users` 5건 200, 저장소에 토큰 없음(`localStorage`에는 기존 `isLoggedIn`만 남음), 로그아웃 → 200·Redis `refresh:{email}` 삭제·재접속 시 비로그인. 관리자 역할 계정은 `/admin`으로 이동하고 관리자 로그아웃도 같은 결과.
 - 미확인·범위 밖: Access Token 1시간 만료 후 자동 재발급은 실제 시간 경과로 확인하지 않았다(필터 401과 클라이언트 재시도를 각각 테스트로 확인). 토큰 없는 `/api/users`는 여전히 500이며 접근 권한(#7)에서 다룬다. 여러 탭 동시 재발급 경합(#11), WebSocket 인증(#10)은 범위 밖이다.
+
+## macOS용 스크립트 추가 (2026-11-22)
+
+- 범위: `scripts/`의 PowerShell 스크립트 4개와 같은 동작의 `init-docker-env.sh`, `verify.sh`, `verify-runtime.sh`, `tests/verify-runtime.test.sh`를 추가했다. 기존 `.ps1`은 바꾸지 않았다. Codex Actions에 `darwin` 버튼 5개를 추가하고, compose 오류 메시지·문서·지침·verify-project Skill에 맥 명령을 함께 적었다.
+- 환경: macOS 26(arm64), bash 3.2, JDK 21만 설치, Node 26.8.1, npm 11.19.0, Docker Desktop 미실행.
+- `bash -n`으로 스크립트 4개의 문법을 확인했다. `tests/verify-runtime.test.sh`는 서비스 누락·unhealthy 두 경우 모두 HTTP 검사 전에 실패해 통과했다. 가짜 docker·curl로 정상 상태를 만들면 `verify-runtime.sh`가 종료 코드 0으로 통과한다.
+- `init-docker-env.sh`는 임시 디렉터리에서 실행했다. 세 값이 44자 Base64로 채워지고, 파일 권한은 600이며, 다시 실행하면 기존 파일을 유지한다.
+- `verify.sh backend`는 JDK 17이 없어 버전 확인에서 실패했다(종료 코드 1). `verify.sh frontend`는 Node 26이라 버전 확인에서 실패했다(종료 코드 1). `verify.sh runtime`은 Docker 데몬이 꺼져 있어 실패했다. 잘못된 대상은 종료 코드 2로 거부한다.
+- 참고: 버전 기준과 별개로 Node 26에서 `npm run lint`(오류 0개, 경고 31개)와 `npm run test:ci`(17개 통과)를 직접 실행해 통과했다. 기준 버전에서의 검증이 아니다.
+- Docker(맥): 예제 자리표시값만 있던 루트 `.env`를 지우고 `init-docker-env.sh`로 다시 만들었다. `docker compose up -d --build --wait` 종료 코드 0. 이미지 빌드 중 백엔드 `gradlew test bootJar` 성공, 프론트 lint 오류 0개(경고 31개)·Jest 17개 통과. 이어서 `bash scripts/verify.sh runtime` 종료 코드 0(서비스 4개 healthy, HTTP 200 3건, Redis PONG).
+- 미확인: 맥 호스트의 JDK 17·Node 24 환경에서 `verify.sh all`(Playwright 포함)의 전체 통과, Codex 앱의 맥 버튼 표시는 확인하지 않았다.

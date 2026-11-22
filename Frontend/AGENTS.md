@@ -36,7 +36,7 @@
 | 빌드 | `npm.cmd run build` | `npm run build` |
 
 - build는 `react-scripts build`를 사용하고 공통 소스맵 옵션은 `.env.production`에서 설정한다. Windows에서도 `npm.cmd run build`를 사용한다.
-- PR CI와 Codex Actions는 lint 오류를 실패 처리하고 경고를 출력한다. 이후 빌드의 중복 ESLint 검사는 생략한다. 같은 검증은 루트의 `scripts/verify.ps1 -Target Frontend`로 실행하며 정책은 `../docs/ci-and-actions.md`를 참고한다.
+- PR CI와 Codex Actions는 lint 오류를 실패 처리하고 경고를 출력한다. 이후 빌드의 중복 ESLint 검사는 생략한다. 같은 검증은 루트의 `scripts/verify.ps1 -Target Frontend`(macOS는 `bash scripts/verify.sh frontend`)로 실행하며 정책은 `../docs/ci-and-actions.md`를 참고한다.
 - Node 기준은 `.nvmrc`의 24.x LTS, npm은 `package.json`의 11.x이며 CI도 `.nvmrc`를 읽는다. 이 설정이 PC 버전을 자동 전환하거나 호환성 검증을 대신하지 않는다.
 - npm과 기존 `package-lock.json`을 사용한다. 관련 없는 의존성 업그레이드나 패키지 매니저 교체를 하지 않는다. 설치 실패를 lockfile 삭제로 우회하지 않는다.
 - `App.test.js`는 비로그인 화면·주문 진입·입력값 검증을 확인하며 fetch를 대체한다. 새 테스트도 운영 API나 WebSocket에 접속하지 않도록 구성한다. Jest의 Swiper 매핑은 설치된 실제 ESM 파일을 변환하기 위한 설정이다.
