@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(gh pr create*)",
+            "command": "input=$(cat); case \"$input\" in *'gh pr create'*) ;; *) exit 0 ;; esac; marked='(\\\"command\\\"[[:space:]]*:[[:space:]]*\\\"|[;&|])[[:space:]]*PR_REVIEW_CHECKED=1[[:space:]]+gh[[:space:]]+pr[[:space:]]+create'; if [[ $input =~ $marked ]]; then exit 0; fi; echo '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"PR 생성 전 확인(1회 차단): 이번 변경에 인증·인가·데이터 변경·보안 설정이 포함되면 superpowers:requesting-code-review로 독립 리뷰를 먼저 실행하고 지적을 반영한 뒤 결과를 docs/verification.md에 남긴다(docs/verification-workflow.md). 리뷰를 마쳤거나 해당하지 않는 변경이면 같은 명령 앞에 PR_REVIEW_CHECKED=1 를 붙여 다시 실행한다. 예: PR_REVIEW_CHECKED=1 gh pr create --base develop ...\"}}'",
+            "statusMessage": "PR 생성 전 리뷰 확인"
+          }
+        ]
+      }
+    ]
+  }
+}
