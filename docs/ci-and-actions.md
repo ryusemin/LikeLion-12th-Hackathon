@@ -70,7 +70,17 @@ macOS에서는 같은 이름의 Action 5개가 `platform = "darwin"`으로 등�
 
 GitHub의 Ubuntu 실행 결과와 Codex UI 표시는 아직 확인하지 않았다. 다음 작업은 이 검증 기반을 사용해 리팩토링 후보를 검토하는 것이다.
 
-## 4. CodeRabbit PR 자동 리뷰
+## 4. 리뷰 단계
+
+리뷰는 세 단계로 겹친다. 앞 단계가 다음 단계를 대신하지 않는다.
+
+| 단계 | 시점 | 실행 | 결과가 남는 곳 |
+| --- | --- | --- | --- |
+| 독립 리뷰 에이전트 | PR 생성 전, 영향이 큰 변경 | Claude Code `superpowers:requesting-code-review` (`gh pr create` 직전 hook이 알림) | `docs/verification.md` |
+| CodeRabbit | PR 생성·커밋 추가 시 자동 | GitHub 앱 | PR 댓글 |
+| 사람 리뷰 | 병합 전 | 팀원 | PR 리뷰 |
+
+## 5. CodeRabbit PR 자동 리뷰
 
 저장소에 CodeRabbit GitHub 앱을 설치했다(공개 저장소라 무료). `develop` 대상 PR이 열리거나 커밋이 추가되면 자동으로 리뷰 댓글을 단다. 설정은 루트 `.coderabbit.yaml`이다.
 
