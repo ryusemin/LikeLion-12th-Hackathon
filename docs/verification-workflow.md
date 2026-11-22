@@ -39,7 +39,7 @@
 
 ## 리뷰와 완료 보고
 
-인증·인가·데이터 변경·보안 설정 변경은 PR을 만들기 전에 독립 리뷰를 실행한다. Claude Code에서는 `superpowers:requesting-code-review`로 작업 맥락 없는 리뷰어 에이전트에 범위·완료 기준·커밋 구간·검사 결과를 전달하고 보안·회귀·빠진 검사에 집중하게 한다. 결과와 조치는 `docs/verification.md`에 남긴다. 리뷰 에이전트를 사용할 수 없으면 직접 검토했다고 명시한다. 문서·설정만 바꾼 작은 변경에는 강제하지 않는다. Claude Code의 프로젝트 hook(`.claude/settings.json`)이 `gh pr create` 직전에 이 기준을 알려 준다. 알림만 하며 PR 생성을 막지 않는다. PR에는 CodeRabbit 자동 리뷰도 달린다([PR 검증과 Actions](ci-and-actions.md)). 리뷰 지적은 실제 코드로 판단하고, 수정했다면 관련 검사를 다시 실행한다.
+인증·인가·데이터 변경·보안 설정 변경은 PR을 만들기 전에 독립 리뷰를 실행한다. Claude Code에서는 `superpowers:requesting-code-review`로 작업 맥락 없는 리뷰어 에이전트에 범위·완료 기준·커밋 구간·검사 결과를 전달하고 보안·회귀·빠진 검사에 집중하게 한다. 결과와 조치는 `docs/verification.md`에 남긴다. 리뷰 에이전트를 사용할 수 없으면 직접 검토했다고 명시한다. 보안 설정 변경은 크기와 관계없이 대상이다. 이 네 가지에 해당하지 않는 문서·일반 설정의 작은 변경에는 강제하지 않는다. Claude Code의 프로젝트 hook(`.claude/settings.json`)은 `gh pr create`를 실행 전에 한 번 막고, 막은 이유로 이 기준을 Claude에게 전달한다. Claude는 기준에 따라 리뷰를 마쳤거나 해당하지 않음을 확인한 뒤 명령 앞에 `PR_REVIEW_CHECKED=1`을 붙여 다시 실행한다. 확인 창(ask)은 자동 승인 모드에서 표시되지 않아 쓰지 않는다. 이 표시는 강제가 아니라 PR 생성 전에 기준을 확실히 떠올리게 하는 장치다. CodeRabbit 자동 리뷰는 `develop` 대상의 초안이 아닌 PR에만 실행되고 `.coderabbit.yaml`의 제외 경로는 리뷰하지 않는다. 다른 브랜치 대상·초안 PR이나 제외 경로만 바꾼 PR에는 리뷰가 달리지 않을 수 있으므로 검토자가 확인한다([PR 검증과 Actions](ci-and-actions.md)). 리뷰 지적은 실제 코드로 판단하고, 수정했다면 관련 검사를 다시 실행한다.
 
 마지막으로 변경 파일과 `git diff --check`를 확인한다. 보고에는 변경 내용, 실행한 검증, 확인하지 못한 동작을 구분한다. 커밋·push·배포는 별개의 작업이며 이 절차나 Skill 자체가 외부 작업 권한을 부여하지 않는다.
 
