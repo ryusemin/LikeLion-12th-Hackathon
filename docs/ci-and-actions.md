@@ -43,6 +43,8 @@
 | 브라우저 검증 | `powershell -NoProfile -File scripts/verify.ps1 -Target Browser` |
 | Docker 실행 상태 검증 | `powershell -NoProfile -File scripts/verify.ps1 -Target Runtime` |
 
+macOS에서는 같은 이름의 Action 5개가 `platform = "darwin"`으로 등록돼 있으며 `bash scripts/verify.sh backend|frontend|all|browser|runtime`을 실행한다. `verify.sh`는 `verify.ps1`과 같은 대상·순서로 검사한다. 맥에 JDK 17이 설치돼 있으면 기본 JDK가 다른 버전이어도 `/usr/libexec/java_home -v 17`로 선택한다. Codex 앱에서 맥 버튼이 표시되는지는 확인하지 않았다.
+
 앱에서 이 저장소의 로컬 환경을 선택해 사용한다. Actions는 앱의 통합 터미널에서 실행된다. 버튼이 보이지 않으면 저장소를 다시 열거나 설정의 로컬 환경에서 `우리동네 영양사`를 선택한다. 프로젝트 파일은 등록·검증했지만 앱 UI에서 버튼 표시나 클릭 실행을 확인하지는 않았다. [공식 로컬 환경 안내](https://learn.chatgpt.com/docs/environments/local-environment)
 
 자동 setup 스크립트는 비워 두었다. 새 작업 환경에서 자동으로 의존성을 설치하거나 로컬 설정·비밀값을 복사하지 않는다. [개발 안내](development.md)에 따라 JDK 17·Node 24·npm 11과 프론트 의존성을 준비한다.

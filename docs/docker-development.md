@@ -11,6 +11,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/init-docker-env.ps1
 docker compose up -d --build --wait --wait-timeout 240
 ```
 
+macOS에서는 저장소 루트의 터미널(zsh)에서 실행한다. 초기화 스크립트만 다르고 Compose 명령은 같다.
+
+```bash
+bash scripts/init-docker-env.sh
+docker compose up -d --build --wait --wait-timeout 240
+```
+
 첫 빌드는 Linux용 Node·JDK 이미지와 의존성을 내려받으며, 백엔드 테스트 및 프론트 lint·테스트도 실행한다. 루트 `.env`는 초기화 스크립트가 DB 비밀번호와 JWT 키를 난수로 생성하는 개인 파일이며 Git에서 제외된다. 기존 파일이 있으면 유지한다. `docker compose config`는 비밀값을 펼칠 수 있으므로 확인할 때는 `docker compose config --quiet`를 사용한다.
 
 ## 접속 주소

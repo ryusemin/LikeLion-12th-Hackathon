@@ -64,10 +64,10 @@ AGENTS.md는 공통 작업 규칙, Skill은 검증 작업에 사용하는 절차
 
 | 자료 | 역할 |
 | --- | --- |
-| [scripts/verify.ps1](../scripts/verify.ps1) | 백엔드·프론트·브라우저·실행 상태 검사 명령의 진입점 |
-| [scripts/verify-runtime.ps1](../scripts/verify-runtime.ps1) | 실행 중인 Docker 서비스 health·HTTP 응답·Redis 연결 확인 |
-| [실행 상태 검사 도구의 테스트](../scripts/tests/verify-runtime.test.ps1) | 가짜 Docker 응답으로 서비스 누락·비정상 상태의 실패 처리와 경로 복원 확인 |
-| [scripts/init-docker-env.ps1](../scripts/init-docker-env.ps1) | Docker용 로컬 `.env` 초기 생성. 기존 파일은 보존 |
+| [scripts/verify.ps1](../scripts/verify.ps1)·[verify.sh](../scripts/verify.sh) | 백엔드·프론트·브라우저·실행 상태 검사 명령의 진입점(Windows·macOS) |
+| [scripts/verify-runtime.ps1](../scripts/verify-runtime.ps1)·[.sh](../scripts/verify-runtime.sh) | 실행 중인 Docker 서비스 health·HTTP 응답·Redis 연결 확인 |
+| 실행 상태 검사 도구의 테스트 [.ps1](../scripts/tests/verify-runtime.test.ps1)·[.sh](../scripts/tests/verify-runtime.test.sh) | 가짜 Docker 응답으로 서비스 누락·비정상 상태의 실패 처리와 경로 복원 확인 |
+| [scripts/init-docker-env.ps1](../scripts/init-docker-env.ps1)·[.sh](../scripts/init-docker-env.sh) | Docker용 로컬 `.env` 초기 생성. 기존 파일은 보존 |
 | [Playwright 설정](../Frontend/playwright.config.js)·[e2e/](../Frontend/e2e/) | 검사용 브라우저·서버·보고서 설정과 실제 화면 검사 시나리오. 현재 API는 대체하며 실제 인증 연동 검사는 아님 |
 | [GitHub CI](../.github/workflows/ci.yml) | PR 등에서 테스트·빌드·브라우저 검사를 자동 실행 |
 | [백엔드 배포](../.github/workflows/backend-deploy.yml)·[프론트 배포](../.github/workflows/frontend-deploy.yml) | 기존 배포 자동화. 운영 중단으로 develop push 자동 실행을 끄고 수동 실행만 남김. CI와 독립적이므로 CI 실패가 배포 차단을 의미하지는 않음 |

@@ -7,8 +7,8 @@ services:
     environment:
       MYSQL_DATABASE: nimn_docker
       MYSQL_USER: nimn
-      MYSQL_PASSWORD: ${DOCKER_MYSQL_PASSWORD:?먼저 scripts/init-docker-env.ps1을 실행하세요}
-      MYSQL_ROOT_PASSWORD: ${DOCKER_MYSQL_ROOT_PASSWORD:?먼저 scripts/init-docker-env.ps1을 실행하세요}
+      MYSQL_PASSWORD: ${DOCKER_MYSQL_PASSWORD:?먼저 scripts/init-docker-env.ps1(Windows) 또는 scripts/init-docker-env.sh(macOS)를 실행하세요}
+      MYSQL_ROOT_PASSWORD: ${DOCKER_MYSQL_ROOT_PASSWORD:?먼저 scripts/init-docker-env.ps1(Windows) 또는 scripts/init-docker-env.sh(macOS)를 실행하세요}
       TZ: Asia/Seoul
     ports:
       - "127.0.0.1:3307:3306"
@@ -44,11 +44,11 @@ services:
       SERVER_ADDRESS: 0.0.0.0
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/nimn_docker?serverTimezone=Asia/Seoul
       DATABASE_USERNAME: nimn
-      DATABASE_PASSWORD: ${DOCKER_MYSQL_PASSWORD:?먼저 scripts/init-docker-env.ps1을 실행하세요}
+      DATABASE_PASSWORD: ${DOCKER_MYSQL_PASSWORD:?먼저 scripts/init-docker-env.ps1(Windows) 또는 scripts/init-docker-env.sh(macOS)를 실행하세요}
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_JPA_SHOW_SQL: "false"
-      JWT_SECRET: ${DOCKER_JWT_SECRET:?먼저 scripts/init-docker-env.ps1을 실행하세요}
+      JWT_SECRET: ${DOCKER_JWT_SECRET:?먼저 scripts/init-docker-env.ps1(Windows) 또는 scripts/init-docker-env.sh(macOS)를 실행하세요}
       # 실제 외부 서비스에 연결하지 않는 로컬 더미 설정입니다.
       OPENAI_API_KEY: local-placeholder
       OPENAI_CHAT_MODEL: local-placeholder
