@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -24,8 +25,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -145,6 +148,25 @@ abstract class AbstractApiAccessControlTest {
         expectForbidden(delete("/api/image/1"));
         expectForbidden(get("/api/diet/daily/read/2026-01-01"));
         expectForbidden(get("/api/notification/test").param("notificationType", "MEAL"));
+        expectForbidden(multipart("/api/image").file("imageFile", new byte[]{1}));
+        expectForbidden(put("/api/image/1"));
+    }
+
+    @Test
+    void memberCannotReachAdminGetApisWithHead() throws Exception {
+        // Spring MVC는 HEAD를 @GetMapping 핸들러로 실행한다. GET에만 건 관리자 규칙을 HEAD로 우회하면 안 된다.
+        expectForbidden(request(HttpMethod.HEAD, "/api/users/all"));
+        expectForbidden(request(HttpMethod.HEAD, "/api/payment/all"));
+        expectForbidden(request(HttpMethod.HEAD, "/api/diet/daily/read/2026-01-01"));
+        expectForbidden(request(HttpMethod.HEAD, "/api/notification/test").param("notificationType", "MEAL"));
+    }
+
+    @Test
+    void invalidTokenOnPublicApiIsRejectedSoTheClientCanRefreshOrRetryAsGuest() throws Exception {
+        // 프론트는 이 401을 보고 재발급하고, 실패하면 토큰 없이 다시 보낸다 (#4).
+        mockMvc.perform(get("/api/foods/plans").header("Authorization", "Bearer not-a-jwt"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("INVALID_ACCESS_TOKEN"));
     }
 
     @Test
@@ -153,6 +175,10 @@ abstract class AbstractApiAccessControlTest {
                 .andExpect(status().isOk());
         mockMvc.perform(get("/api/payment/all").header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk());
+        // 변경 계열 관리자 API도 Security에서 막지 않는다. 요청 내용 검증 결과는 이번 범위가 아니다.
+        mockMvc.perform(delete("/api/image/999999").header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().is(not(401)))
+                .andExpect(status().is(not(403)));
     }
 
     private void expectLoginRequired(MockHttpServletRequestBuilder request) throws Exception {

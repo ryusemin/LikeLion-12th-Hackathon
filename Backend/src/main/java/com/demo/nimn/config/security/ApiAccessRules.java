@@ -23,9 +23,11 @@ final class ApiAccessRules {
                 // SockJS 연결 수립은 Authorization 헤더를 보낼 수 없다. STOMP CONNECT 인증·구독 권한은 #10에서 다룬다.
                 .requestMatchers("/ws/**").permitAll()
 
-                // 관리자: 전체 회원·결제 조회, 음식·식단 선택지·이미지 관리, 날짜별 전체 식단, 알림 테스트
-                .requestMatchers(HttpMethod.GET, "/api/users/all", "/api/payment/all",
+                // 관리자 전용 경로: 전체 회원·결제 조회, 날짜별 전체 식단, 알림 테스트.
+                // 메서드를 지정하지 않는다. Spring MVC는 HEAD를 @GetMapping 핸들러로 실행하므로 GET만 막으면 HEAD로 우회된다.
+                .requestMatchers("/api/users/all", "/api/payment/all",
                         "/api/diet/daily/read/*", "/api/notification/test").hasRole("ADMIN")
+                // 관리자: 같은 경로를 회원·공개와 나눠 쓰는 변경 API(결제 삭제, 음식·식단 선택지·이미지 관리)
                 .requestMatchers(HttpMethod.DELETE, "/api/payment/*", "/api/image/*").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/foods/food", "/api/foods/plans/weekly",
                         "/api/image").hasRole("ADMIN")
