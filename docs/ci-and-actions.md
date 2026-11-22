@@ -76,7 +76,7 @@ GitHub의 Ubuntu 실행 결과와 Codex UI 표시는 아직 확인하지 않았�
 
 | 단계 | 시점 | 실행 | 결과가 남는 곳 |
 | --- | --- | --- | --- |
-| 독립 리뷰 에이전트 | PR 생성 전, 영향이 큰 변경 | Claude Code `superpowers:requesting-code-review` (`gh pr create`를 hook이 실행 전 1회 차단해 기준 전달, 확인 후 `PR_REVIEW_CHECKED=1`로 재실행) | `docs/verification.md` |
+| 독립 리뷰 에이전트 | PR 생성 전, 인증·인가·데이터 변경·보안 설정 변경(보안 설정은 크기 무관, 기준은 [검증 절차](verification-workflow.md#리뷰와-완료-보고)) | Claude Code `superpowers:requesting-code-review` (`gh pr create`를 hook이 실행 전 1회 차단해 기준 전달, 확인 후 `PR_REVIEW_CHECKED=1`로 재실행) | `docs/verification.md` |
 | CodeRabbit | PR 생성·커밋 추가 시 자동 | GitHub 앱 | PR 댓글 |
 | 사람 리뷰 | 병합 전 | 팀원 | PR 리뷰 |
 
