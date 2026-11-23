@@ -50,12 +50,6 @@ public class ReviewServiceImpl implements ReviewService {
     public ReviewSummaryDTO getReviewSummaryByFoodId(Long foodId) {
         ReviewSummary reviewSummary = reviewSummaryRepository.findByFoodId(foodId)
                 .orElseThrow(() -> new RuntimeException("ReviewSummary not found"));
-
-        List<Review> completedReviews = reviewSummary.getReviews().stream()
-                .filter(review -> review.getRating() != null)
-                .collect(Collectors.toList());
-
-        reviewSummary.setReviews(completedReviews);
         return convertToReviewSummaryDTO(reviewSummary);
     }
 
@@ -196,7 +190,11 @@ public class ReviewServiceImpl implements ReviewService {
     private ReviewSummaryDTO convertToReviewSummaryDTO(ReviewSummary reviewSummary) {
         List<ReviewDTO> reviewDTOs = reviewSummary.getReviews().stream()
                 .filter(review -> review.getRating() != null)
-                .map(this::convertToReviewDTO)
+                .map(review -> {
+                    ReviewDTO dto = convertToReviewDTO(review);
+                    dto.setUserEmail(maskEmail(dto.getUserEmail()));
+                    return dto;
+                })
                 .collect(Collectors.toList());
 
         return ReviewSummaryDTO.builder()
@@ -208,6 +206,14 @@ public class ReviewServiceImpl implements ReviewService {
                 .totalReviews(reviewSummary.getTotalReviews())
                 .reviews(reviewDTOs)
                 .build();
+    }
+
+    // 공개 리뷰 요약용: 아이디 앞 최대 3글자만 남기고 도메인은 버린다 (#26)
+    static String maskEmail(String email) {
+        if (email == null) return null;
+        int at = email.indexOf('@');
+        String id = at < 0 ? email : email.substring(0, at);
+        return id.substring(0, Math.min(3, Math.max(0, id.length() - 1))) + "***";
     }
 
     private DailyDietReviewDTO convertToDailyDietReviewDTO(DailyDietReview dailyReview) {

@@ -477,7 +477,7 @@ function AllDietPage() {
                                             <div className="allDietPage_review_item_user">
                                                 <span className="allDietPage_review_user_label">작성자: </span>
                                                 <span className="allDietPage_review_user_name">
-                                                    {review.userEmail ? review.userEmail.substring(0, 3) + '***' : '익명'}
+                                                    {review.userEmail || '익명'}
                                                 </span>
                                             </div>
                                             {review.comment && (

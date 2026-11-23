@@ -18,7 +18,7 @@ public class ReviewDTO {
     @Schema(description = "리뷰 ID", example = "1", accessMode = Schema.AccessMode.READ_ONLY)
     private Long id;
 
-    @Schema(description = "리뷰 작성자 이메일", example = "user@example.com", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "리뷰 작성자 이메일. 공개 리뷰 요약에서는 아이디 앞 최대 3글자만 남기고 가립니다(예: use***).", example = "user@example.com", accessMode = Schema.AccessMode.READ_ONLY)
     private String userEmail;
 
     @Schema(description = "음식 ID", example = "1", required = true)
