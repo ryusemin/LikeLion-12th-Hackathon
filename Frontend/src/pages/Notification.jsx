@@ -1,5 +1,5 @@
 import { notificationSocketUrl } from '../config/endpoints';
-import { apiFetch } from '../api/client';
+import { apiFetch, authorizeNotificationSocket } from '../api/client';
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
 import SockJS from 'sockjs-client';
@@ -100,16 +100,11 @@ function Notification() {
             stompClientRef.current.deactivate();
         }
 
-        // SockJS 연결 시 query param으로 userEmail 전달
-        const socket = new SockJS(notificationSocketUrl(userEmail));
-
         const client = new Client({
-            webSocketFactory: () => socket,
-            connectHeaders: {
-                login: userEmail,        
-                userEmail: userEmail     
-            },
-            debug: (str) => console.log("🔍 STOMP Debug:", str),
+            // 재연결마다 새 SockJS 연결을 만든다. 사용자는 서버가 Access Token으로 정한다 (#10).
+            webSocketFactory: () => new SockJS(notificationSocketUrl()),
+            beforeConnect: () => authorizeNotificationSocket(client),
+            // debug 로그를 켜면 CONNECT 프레임의 Access Token이 콘솔에 찍히므로 두지 않는다 (#10).
             heartbeatIncoming: 10000,
             heartbeatOutgoing: 10000,
             reconnectDelay: 5000,
@@ -169,7 +164,7 @@ function Notification() {
 
         client.activate();
         stompClientRef.current = client;
-    }, [userEmail]);
+    }, []);
 
     // 단일 알림 읽음 처리
     const markAsRead = useCallback(async (notificationId) => {

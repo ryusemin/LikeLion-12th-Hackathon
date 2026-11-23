@@ -20,7 +20,7 @@ final class ApiAccessRules {
                 .requestMatchers("/error").permitAll()
                 .requestMatchers("/docs", "/docs/**", "/swagger-ui/**", "/swagger-ui.html",
                         "/api-docs", "/api-docs/**").permitAll()
-                // SockJS 연결 수립은 Authorization 헤더를 보낼 수 없다. STOMP CONNECT 인증·구독 권한은 #10에서 다룬다.
+                // SockJS 연결 수립은 Authorization 헤더를 보낼 수 없다. 인증은 STOMP CONNECT의 Access Token으로 CustomChannelInterceptor가 한다 (#10).
                 .requestMatchers("/ws/**").permitAll()
 
                 // 관리자 전용 경로: 전체 회원·결제 조회, 날짜별 전체 식단, 알림 테스트.

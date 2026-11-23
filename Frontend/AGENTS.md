@@ -18,7 +18,7 @@
 - 서버는 Refresh마다 Refresh Token을 교체하고 이전 토큰 재사용을 세션 탈취로 보아 폐기한다. 재발급 요청을 직접 추가하지 말고 공통 클라이언트를 거친다. 여러 탭의 동시 재발급 경합은 #11에서 다룬다.
 - 인증 연동 변경은 로그인·사용자 조회·재발급·로그아웃·재접속 흐름을 함께 검토한다. 편의를 위해 Access Token을 localStorage에 저장하거나 Refresh Token의 HttpOnly를 해제하지 않는다. JWT payload의 역할은 화면 분기에만 쓰고 권한 판단은 서버가 한다.
 - API·이미지·WebSocket·결제 복귀 주소는 `src/config/endpoints.js`를 통해 환경변수를 사용한다. `npm start`는 `.env.development`, 배포 빌드는 `.env.production`, 테스트는 `.env.test`를 읽는다. 개인 설정은 해당 환경의 `.local` 파일로 덮어쓰며, 테스트 중 네트워크 호출은 대체한다.
-- WebSocket에서는 연결·구독·해제를 함께 확인하고 인증된 사용자와 구독 대상이 일치하는지 서버 계약을 확인한다. 현재 서버의 CONNECT 인증·구독 권한 보완은 #10에서 다룬다.
+- 알림 WebSocket은 SockJS라 연결 요청에 헤더를 붙일 수 없다. `client.js`의 `authorizeNotificationSocket`을 stompjs `beforeConnect`로 연결해 STOMP CONNECT 헤더에 Access Token을 보낸다. 서버는 토큰으로 사용자를 정하므로 연결 주소·헤더에 이메일을 넣지 않는다. 구독은 `/user/queue/**`만 허용되고 클라이언트 SEND는 거부된다. `webSocketFactory`는 재연결마다 새 SockJS를 만든다. stompjs `debug` 로그는 CONNECT 헤더(토큰)를 콘솔에 찍으므로 켜지 않는다.
 
 ## 실행과 검증
 

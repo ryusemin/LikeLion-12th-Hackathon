@@ -17,9 +17,7 @@ test.each([
   expect(apiUrl('/api/users')).toBe(`${apiBase}/api/users`);
   expect(apiUrl('/api/image/42')).toBe(`${apiBase}/api/image/42`);
   expect(appUrl('/dietpaymentcomplete')).toBe(`${appBase}/dietpaymentcomplete`);
-  expect(notificationSocketUrl('a+b@example.com')).toBe(
-    `${apiBase}/ws/notification?userEmail=a%2Bb%40example.com`
-  );
+  expect(notificationSocketUrl()).toBe(`${apiBase}/ws/notification`);
 });
 
 test('API 주소가 없으면 다른 서버로 조용히 요청하지 않고 설정 오류를 알린다', () => {

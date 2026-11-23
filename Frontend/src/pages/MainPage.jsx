@@ -1,5 +1,5 @@
 import { notificationSocketUrl } from '../config/endpoints';
-import { apiFetch } from '../api/client';
+import { apiFetch, authorizeNotificationSocket } from '../api/client';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
@@ -216,16 +216,10 @@ const MainPage = ({ onNotificationCountChange }) => {
 
     connectionAttempts.current += 1;
 
-    const wsUrl = notificationSocketUrl(userEmail);
-
-    const socket = new SockJS(wsUrl);
-
     const client = new Client({
-      webSocketFactory: () => socket,
-      connectHeaders: {
-        login: userEmail,
-        userEmail: userEmail
-      },
+      // 재연결마다 새 SockJS 연결을 만든다. 닫힌 소켓을 다시 쓰면 재연결되지 않는다.
+      webSocketFactory: () => new SockJS(notificationSocketUrl()),
+      beforeConnect: () => authorizeNotificationSocket(client),
       heartbeatIncoming: 10000,
       heartbeatOutgoing: 10000,
       reconnectDelay: 5000,
@@ -316,7 +310,8 @@ const MainPage = ({ onNotificationCountChange }) => {
 
         return () => {
           clearTimeout(timer);
-          if (stompClientRef.current && stompClientRef.current.connected) {
+          // 토큰을 기다리는 중(아직 connected가 아님)인 클라이언트도 멈춰야 화면을 떠난 뒤 연결이 열리지 않는다.
+          if (stompClientRef.current) {
             stompClientRef.current.deactivate();
           }
         };

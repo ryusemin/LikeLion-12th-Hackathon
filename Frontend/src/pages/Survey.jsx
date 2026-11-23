@@ -1,5 +1,5 @@
 import { apiUrl, notificationSocketUrl } from '../config/endpoints';
-import { apiFetch } from '../api/client';
+import { apiFetch, authorizeNotificationSocket } from '../api/client';
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
 import SockJS from 'sockjs-client';
@@ -156,14 +156,11 @@ function Survey() {
             }
         }
 
-        const socket = new SockJS(notificationSocketUrl(userEmail));
-
         const client = new Client({
-            webSocketFactory: () => socket,
-            connectHeaders: {
-                userEmail: userEmail     
-            },
-            debug: (str) => console.log("🔍 Survey STOMP Debug:", str),
+            // 재연결마다 새 SockJS 연결을 만든다. 사용자는 서버가 Access Token으로 정한다 (#10).
+            webSocketFactory: () => new SockJS(notificationSocketUrl()),
+            beforeConnect: () => authorizeNotificationSocket(client),
+            // debug 로그를 켜면 CONNECT 프레임의 Access Token이 콘솔에 찍히므로 두지 않는다 (#10).
             heartbeatIncoming: 4000,
             heartbeatOutgoing: 4000,
             reconnectDelay: 3000,
@@ -213,13 +210,6 @@ function Survey() {
 
                 const userQueueSub = client.subscribe(
                     `/user/queue/notification`,
-                    (msg) => {
-                        handleMessage(msg);
-                    }
-                );
-
-                const userTopicSub = client.subscribe(
-                    `/topic/notification/${userEmail}`,
                     (msg) => {
                         handleMessage(msg);
                     }
