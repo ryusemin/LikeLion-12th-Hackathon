@@ -1,5 +1,7 @@
 package com.demo.nimn.service.diet;
 
+import com.demo.nimn.exception.ErrorCode;
+import com.demo.nimn.exception.CustomException;
 import com.demo.nimn.dto.diet.FoodSelectionDTO;
 import com.demo.nimn.dto.diet.CreateFoodSelectionDTO;
 import com.demo.nimn.entity.diet.FoodSelection;
@@ -29,8 +31,11 @@ public class FoodSelectionServiceImpl implements FoodSelectionService {
 
     // ID로 FoodSelection 엔티티 조회 후 DTO로 변환
     @Override
-    public FoodSelectionDTO getById(Long mealSelectionId) {
-        return convertToMealSelectionDTO(foodSelectionRepository.getReferenceById(mealSelectionId));
+    public FoodSelectionDTO getById(Long mealSelectionId, String ownerEmail) {
+        FoodSelection foodSelection = foodSelectionRepository.findById(mealSelectionId)
+                .filter(selection -> ownerEmail.equals(selection.getUserEmail()))
+                .orElseThrow(() -> new CustomException(ErrorCode.RESOURCE_NOT_FOUND));
+        return convertToMealSelectionDTO(foodSelection);
     }
 
     // 클라이언트에서 보낸 요청 DTO를 실제 DB 저장용 FoodSelection 엔티티로 변환

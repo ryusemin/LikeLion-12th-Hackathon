@@ -1,5 +1,7 @@
 package com.demo.nimn.service.payment;
 
+import com.demo.nimn.exception.ErrorCode;
+import com.demo.nimn.exception.CustomException;
 import com.demo.nimn.dto.diet.WeeklyDietDTO;
 import com.demo.nimn.dto.payment.*;
 import com.demo.nimn.entity.order.Order;
@@ -49,12 +51,15 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Transactional
     @Override
-    public PaymentDTO createImportPayment(PaymentRequestDTO request) {
+    public PaymentDTO createImportPayment(PaymentRequestDTO request, String ownerEmail) {
+        // 주문내역 조회: 본인 주문만 결제한다. 외부 결제 조회보다 먼저 확인한다 (#8).
+        Order order = orderService.getOrder(request.getOrderId());
+        if (!ownerEmail.equals(order.getPurchaser())) {
+            throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND);
+        }
         try {
             // 결제 단건 조회(아임포트)
             IamportResponse<com.siot.IamportRestClient.response.Payment> iamportResponse = iamportClient.paymentByImpUid(request.getPaymentUid());
-            // 주문내역 조회
-            Order order = orderService.getOrder(request.getOrderId());
 
             // 결제 완료가 아니면
             if (!iamportResponse.getResponse().getStatus().equals("paid")) {
@@ -114,8 +119,10 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public PaymentDTO getPaymentByPaymentId(String paymentId) {
-        Payment payment = paymentRepository.findById(paymentId).orElseThrow(() -> new RuntimeException("Payment not found"));
+    public PaymentDTO getPaymentByPaymentId(String paymentId, String ownerEmail) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .filter(found -> ownerEmail.equals(found.getPurchaser()))
+                .orElseThrow(() -> new CustomException(ErrorCode.RESOURCE_NOT_FOUND));
 
         return convertToPaymentDTO(payment);
     }

@@ -17,7 +17,7 @@ public interface DietService {
     List<DailyDietDTO> convertToDailyDietDTOS(List<DailyDiet> dailyDietEntities);
 
     // WeeklyDiet
-    WeeklyDietDTO createWeeklyDiet(CreateWeeklyDietDTO weeklyDietDTO);
+    WeeklyDietDTO createWeeklyDiet(String ownerEmail, CreateWeeklyDietDTO weeklyDietDTO);
     WeeklyDietDTO getWeeklyDietByUserEmail(String userEmail);
     WeeklyDietDTO getWeeklyDietById(Long weeklyDietId);
 }

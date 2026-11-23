@@ -1,5 +1,7 @@
 package com.demo.nimn.controller.review;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.demo.nimn.dto.auth.CustomUserDetails;
 import com.demo.nimn.dto.review.DailyDietReviewDTO;
 import com.demo.nimn.dto.review.DailyDietReviewUpdateDTO;
 import com.demo.nimn.dto.review.ReviewDTO;
@@ -104,9 +106,9 @@ public class ReviewController {
             )
     })
     @GetMapping("/daily")
-    public ResponseEntity<DailyDietReviewDTO> getDailyDietReviewByUserAndDate(@Parameter(description = "조회할 사용자 이메일", required = true, example = "user@example.com") @RequestParam("userEmail") String userEmail,
+    public ResponseEntity<DailyDietReviewDTO> getDailyDietReviewByUserAndDate(@AuthenticationPrincipal CustomUserDetails principal,
                                                                               @Parameter(description = "조회할 날짜", required = true, example = "2024-12-17") @RequestParam("date") LocalDate reviewDate) {
-        DailyDietReviewDTO dailyReview = reviewService.getDailyDietReviewByUserAndDate(userEmail, reviewDate);
+        DailyDietReviewDTO dailyReview = reviewService.getDailyDietReviewByUserAndDate(principal.getUsername(), reviewDate);
         return ResponseEntity.ok(dailyReview);
     }
 
@@ -124,9 +126,10 @@ public class ReviewController {
             )
     })
     @PutMapping("/daily/{dailyReviewId}")
-    public ResponseEntity<DailyDietReviewDTO> updateDailyDietReview(@Parameter(description = "수정할 하루 식단 리뷰 ID", required = true, example = "1") @PathVariable("dailyReviewId") Long dailyReviewId,
+    public ResponseEntity<DailyDietReviewDTO> updateDailyDietReview(@AuthenticationPrincipal CustomUserDetails principal,
+                                                                    @Parameter(description = "수정할 하루 식단 리뷰 ID", required = true, example = "1") @PathVariable("dailyReviewId") Long dailyReviewId,
                                                                     @Parameter(description = "수정할 리뷰 목록", required = true) @RequestBody DailyDietReviewUpdateDTO request) {
-        DailyDietReviewDTO updatedReview = reviewService.updateDailyDietReview(dailyReviewId, request.getReviews());
+        DailyDietReviewDTO updatedReview = reviewService.updateDailyDietReview(dailyReviewId, principal.getUsername(), request.getReviews());
         return ResponseEntity.ok(updatedReview);
     }
 }

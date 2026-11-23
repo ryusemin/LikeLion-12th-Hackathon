@@ -34,21 +34,8 @@ const WeeklyFoodMenu = () => {
       setError(null);
 
       try {
-        // 1단계: 유저 정보 조회
-        const userResponse = await apiFetch('/api/users', {
-          method: 'GET',
-          credentials: 'include'
-        });
-
-        if (!userResponse.ok) {
-          throw new Error('사용자 정보를 가져올 수 없습니다.');
-        }
-
-        const userData = await userResponse.json();
-        const userEmail = userData.email;
-
-        // 2단계: 유저의 일주일 식단 조회
-        const dietResponse = await apiFetch(`/api/diet/weekly/read/${userEmail}`, {
+        // 로그인한 유저의 일주일 식단 조회. 서버가 토큰으로 사용자를 정한다 (#8).
+        const dietResponse = await apiFetch('/api/diet/weekly/read', {
           method: 'GET',
           credentials: 'include'
         });

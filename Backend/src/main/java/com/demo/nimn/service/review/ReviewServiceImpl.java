@@ -1,5 +1,7 @@
 package com.demo.nimn.service.review;
 
+import com.demo.nimn.exception.ErrorCode;
+import com.demo.nimn.exception.CustomException;
 import com.demo.nimn.dto.diet.DailyDietDTO;
 import com.demo.nimn.dto.diet.FoodSelectionDTO;
 import com.demo.nimn.dto.diet.WeeklyDietDTO;
@@ -142,9 +144,10 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public DailyDietReviewDTO updateDailyDietReview(Long id, List<ReviewDTO> reviewDTOs) {
+    public DailyDietReviewDTO updateDailyDietReview(Long id, String ownerEmail, List<ReviewDTO> reviewDTOs) {
         DailyDietReview dailyReview = dailyDietReviewRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("DailyDietReview not found"));
+                .filter(found -> ownerEmail.equals(found.getUserEmail()))
+                .orElseThrow(() -> new CustomException(ErrorCode.RESOURCE_NOT_FOUND));
 
         Map<Long, ReviewDTO> reviewDTOMap = new HashMap<>();
         for (ReviewDTO reviewDTO : reviewDTOs) {

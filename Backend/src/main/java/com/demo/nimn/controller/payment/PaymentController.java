@@ -1,5 +1,7 @@
 package com.demo.nimn.controller.payment;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.demo.nimn.dto.auth.CustomUserDetails;
 import com.demo.nimn.dto.payment.*;
 import com.demo.nimn.service.payment.PaymentService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -38,8 +40,9 @@ public class PaymentController {
             )
     })
     @PostMapping("")
-    public ResponseEntity<PaymentDTO> createPayment(@RequestBody PaymentRequestDTO paymentRequestDTO) {
-        PaymentDTO created = paymentService.createImportPayment(paymentRequestDTO);
+    public ResponseEntity<PaymentDTO> createPayment(@AuthenticationPrincipal CustomUserDetails principal,
+                                                    @RequestBody PaymentRequestDTO paymentRequestDTO) {
+        PaymentDTO created = paymentService.createImportPayment(paymentRequestDTO, principal.getUsername());
         return ResponseEntity.status(201).body(created);
     }
 
@@ -57,13 +60,14 @@ public class PaymentController {
             )
     })
     @GetMapping("/{paymentId}")
-    public ResponseEntity<PaymentDTO> getPaymentByPaymentId(@Parameter(description = "조회할 결제 ID", required = true, example = "PAY_20241217143055ABC123")
+    public ResponseEntity<PaymentDTO> getPaymentByPaymentId(@AuthenticationPrincipal CustomUserDetails principal,
+                                                            @Parameter(description = "조회할 결제 ID", required = true, example = "PAY_20241217143055ABC123")
                                                                 @PathVariable("paymentId") String paymentId) {
-        PaymentDTO payment = paymentService.getPaymentByPaymentId(paymentId);
+        PaymentDTO payment = paymentService.getPaymentByPaymentId(paymentId, principal.getUsername());
         return ResponseEntity.ok(payment);
     }
 
-    @Operation(summary = "사용자별 결제 내역 조회", description = "특정 사용자(구매자)의 모든 결제 내역을 조회합니다.")
+    @Operation(summary = "내 결제 내역 조회", description = "로그인한 사용자의 모든 결제 내역을 조회합니다.")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -77,9 +81,8 @@ public class PaymentController {
             )
     })
     @GetMapping("")
-    public ResponseEntity<List<PaymentDTO>> getPaymentByPurchaser(@Parameter(description = "조회할 구매자 이메일", required = true, example = "user@example.com")
-                                                                      @RequestParam("purchaser") String purchaser) {
-        List<PaymentDTO> payments = paymentService.getPaymentByPurchaser(purchaser);
+    public ResponseEntity<List<PaymentDTO>> getPaymentByPurchaser(@AuthenticationPrincipal CustomUserDetails principal) {
+        List<PaymentDTO> payments = paymentService.getPaymentByPurchaser(principal.getUsername());
         return ResponseEntity.ok(payments);
     }
 

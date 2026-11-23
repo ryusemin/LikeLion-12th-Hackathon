@@ -24,6 +24,8 @@ public enum ErrorCode {
 
     // 📥 요청
     INVALID_INPUT(HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
+    // 남의 데이터도 없는 데이터와 같은 응답으로 답해 존재 여부를 드러내지 않는다 (#8).
+    RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 데이터를 찾을 수 없습니다."),
 
     // 💥 서버
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 에러");

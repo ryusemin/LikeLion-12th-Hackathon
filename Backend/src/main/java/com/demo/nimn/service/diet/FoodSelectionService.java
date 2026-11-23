@@ -7,7 +7,7 @@ import com.demo.nimn.entity.diet.FoodSelection;
 import java.util.List;
 
 public interface FoodSelectionService {
-    FoodSelectionDTO getById(Long mealSelectionId);
+    FoodSelectionDTO getById(Long mealSelectionId, String ownerEmail);
     List<FoodSelection> convertToMealSelectionEntities(List<CreateFoodSelectionDTO> mealSelectionDTOS);
     List<FoodSelectionDTO> convertToMealSelectionDTOS(List<FoodSelection> foodSelectionEntities);
 }

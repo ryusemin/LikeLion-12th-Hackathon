@@ -1,5 +1,7 @@
 package com.demo.nimn.controller.diet;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.demo.nimn.dto.auth.CustomUserDetails;
 import com.demo.nimn.dto.diet.FoodSelectionDTO;
 import com.demo.nimn.service.diet.FoodSelectionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,8 +33,9 @@ public class FoodSelectionController {
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content())
     })
     @GetMapping("read/{mealSelectionId}")
-    public ResponseEntity<FoodSelectionDTO> getMealSelectionById(@PathVariable Long mealSelectionId) {
-        FoodSelectionDTO foodSelectionDTO = foodSelectionService.getById(mealSelectionId);
+    public ResponseEntity<FoodSelectionDTO> getMealSelectionById(@AuthenticationPrincipal CustomUserDetails principal,
+                                                                 @PathVariable Long mealSelectionId) {
+        FoodSelectionDTO foodSelectionDTO = foodSelectionService.getById(mealSelectionId, principal.getUsername());
         return ResponseEntity.ok(foodSelectionDTO);
     }
 }

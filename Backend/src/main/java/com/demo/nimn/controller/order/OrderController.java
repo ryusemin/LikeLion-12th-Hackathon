@@ -1,5 +1,8 @@
 package com.demo.nimn.controller.order;
 
+import com.demo.nimn.exception.CustomException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.demo.nimn.dto.auth.CustomUserDetails;
 import com.demo.nimn.dto.order.OrderDTO;
 import com.demo.nimn.dto.order.OrderRequestDTO;
 import com.demo.nimn.service.order.OrderService;
@@ -39,15 +42,18 @@ public class OrderController {
             )
     })
     @PostMapping("")
-    public ResponseEntity<OrderDTO> createOrder(@RequestBody OrderRequestDTO orderRequestDTO) {
+    public ResponseEntity<OrderDTO> createOrder(@AuthenticationPrincipal CustomUserDetails principal,
+                                                @RequestBody OrderRequestDTO orderRequestDTO) {
         try {
             OrderDTO orderDTO = OrderDTO.builder()
-                    .purchaser(orderRequestDTO.getPurchaser())
+                    .purchaser(principal.getUsername())
                     .weeklyDietId(orderRequestDTO.getWeeklyDietId())
                     .build();
 
             OrderDTO created = orderService.createOrder(orderDTO);
             return ResponseEntity.status(201).body(created);
+        } catch (CustomException e) {
+            throw e;
         } catch (Exception e) {
             logger.error("Order creation failed", e);
             throw new RuntimeException("주문 생성에 실패했습니다: " + e.getMessage());

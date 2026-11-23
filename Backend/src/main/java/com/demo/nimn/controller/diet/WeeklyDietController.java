@@ -1,5 +1,7 @@
 package com.demo.nimn.controller.diet;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.demo.nimn.dto.auth.CustomUserDetails;
 import com.demo.nimn.dto.diet.WeeklyDietDTO;
 import com.demo.nimn.dto.diet.CreateWeeklyDietDTO;
 import com.demo.nimn.service.diet.DietService;
@@ -33,8 +35,9 @@ public class WeeklyDietController {
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content())
     })
     @PostMapping("/create") // 유저 일주일 식단 생성
-    public ResponseEntity<WeeklyDietDTO> createWeeklyDiet(@RequestBody CreateWeeklyDietDTO weeklyDietDTO) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(dietService.createWeeklyDiet(weeklyDietDTO));
+    public ResponseEntity<WeeklyDietDTO> createWeeklyDiet(@AuthenticationPrincipal CustomUserDetails principal,
+                                                          @RequestBody CreateWeeklyDietDTO weeklyDietDTO) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(dietService.createWeeklyDiet(principal.getUsername(), weeklyDietDTO));
     }
 
     @Operation(summary = "유저의 일주일 식단 조회", description = "유저의 특정 일주일 식단 조회")
@@ -44,8 +47,8 @@ public class WeeklyDietController {
             @ApiResponse(responseCode = "403", description = "권한 없음", content = @Content()),
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content())
     })
-    @GetMapping("/read/{userEmail}") // 유저 특정 일주일 식단 조회
-    public ResponseEntity<WeeklyDietDTO> getWeeklyByUserEmail(@PathVariable("userEmail") String userEmail) {
-        return ResponseEntity.status(HttpStatus.OK).body(dietService.getWeeklyDietByUserEmail(userEmail));
+    @GetMapping("/read") // 로그인한 유저의 일주일 식단 조회
+    public ResponseEntity<WeeklyDietDTO> getWeeklyByUserEmail(@AuthenticationPrincipal CustomUserDetails principal) {
+        return ResponseEntity.status(HttpStatus.OK).body(dietService.getWeeklyDietByUserEmail(principal.getUsername()));
     }
 }
