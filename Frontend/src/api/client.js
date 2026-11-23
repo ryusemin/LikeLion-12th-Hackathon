@@ -80,12 +80,35 @@ function startSession(token) {
   refreshPromise = null;
 }
 
+// 알림 WebSocket은 SockJS라 연결 요청에 Authorization 헤더를 붙일 수 없다. STOMP CONNECT 헤더로 Access Token을 보낸다 (#10).
+// stompjs의 beforeConnect에서 연결·재연결마다 호출한다. WebSocket은 401로 재발급할 수 없으므로 만료가 가까우면 미리 재발급한다.
+export async function authorizeNotificationSocket(client) {
+  await ensureSession();
+  const token = accessToken && expiresWithin(accessToken, 30_000) ? await refreshAccessToken() : accessToken;
+  if (!token) {
+    // 로그인 세션이 없으면 거부될 연결을 반복하지 않는다.
+    await client.deactivate();
+    return;
+  }
+  client.connectHeaders = { Authorization: `Bearer ${token}` };
+}
+
 // JWT의 payload는 서명 없이도 읽을 수 있는 공개 정보다. 화면 분기에만 쓰고, 권한 판단은 서버가 한다.
-function roleOf(token) {
+function payloadOf(token) {
   try {
     const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-    return JSON.parse(atob(payload)).role || null;
+    return JSON.parse(atob(payload));
   } catch {
-    return null;
+    return {};
   }
+}
+
+function roleOf(token) {
+  return payloadOf(token).role || null;
+}
+
+// 재발급 시점을 정하는 데만 쓴다. 만료 여부의 판단은 서버가 한다.
+function expiresWithin(token, milliseconds) {
+  const { exp } = payloadOf(token);
+  return typeof exp === 'number' && exp * 1000 - Date.now() < milliseconds;
 }

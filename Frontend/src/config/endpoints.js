@@ -10,8 +10,5 @@ const wsUrl = requiredUrl('REACT_APP_WS_URL', process.env.REACT_APP_WS_URL);
 export const apiUrl = (path) => `${apiBaseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
 export const appUrl = (path) => `${appBaseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
 
-export function notificationSocketUrl(email) {
-  const url = new URL(wsUrl);
-  url.searchParams.set('userEmail', email);
-  return url.toString();
-}
+// 사용자는 STOMP CONNECT의 Access Token으로 서버가 정한다. 연결 주소에 이메일을 넣지 않는다 (#10).
+export const notificationSocketUrl = () => wsUrl;

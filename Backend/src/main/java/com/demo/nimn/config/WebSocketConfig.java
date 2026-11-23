@@ -1,8 +1,6 @@
 package com.demo.nimn.config;
 
 import com.demo.nimn.websocket.CustomChannelInterceptor;
-import com.demo.nimn.websocket.CustomHandshakeHandler;
-import com.demo.nimn.websocket.CustomHandshakeInterceptor;
 import com.demo.nimn.websocket.CustomWebSocketHandlerDecoratorFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
@@ -22,7 +20,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final CustomChannelInterceptor customChannelInterceptor;
     private final CustomWebSocketHandlerDecoratorFactory customWebSocketHandlerDecoratorFactory;
-    private final CustomHandshakeInterceptor customHandshakeInterceptor;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
@@ -33,9 +30,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        // 사용자는 연결 주소의 값이 아니라 STOMP CONNECT의 Access Token으로 정한다(CustomChannelInterceptor, #10).
+        // 허용 Origin은 HTTP CORS 설정(WebConfig)과 같은 목록을 쓴다.
         registry.addEndpoint("/ws/notification")
-                .setHandshakeHandler(new CustomHandshakeHandler())
-                .setAllowedOriginPatterns("http://localhost:3000", "http://127.0.0.1:3000", "http://nimn.store")
+                .setAllowedOriginPatterns("http://localhost:3000", "http://127.0.0.1:3000",
+                        "https://nimn.store", "http://nimn.store")
                 .withSockJS();
     }
 

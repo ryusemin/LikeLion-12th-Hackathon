@@ -164,3 +164,47 @@ test('로그인 실패는 서버 메시지를 돌려주고 토큰을 남기지 �
   await client.apiFetch('/api/users');
   expect(authOf('/api/users')).toEqual([null]);
 });
+
+describe('알림 WebSocket 인증 (#10)', () => {
+  const socketClient = () => ({ connectHeaders: {}, deactivate: jest.fn(() => Promise.resolve()) });
+  const inSeconds = (seconds) => Math.floor(Date.now() / 1000) + seconds;
+
+  test('CONNECT 헤더에 현재 Access Token만 넣고 이메일은 보내지 않는다', async () => {
+    const token = jwt({ email: 'a@t.invalid', role: 'ROLE_USER', exp: inSeconds(3600) });
+    mockServer({ '/api/auth/login': () => json(200, { accessToken: token }) });
+    await client.login('a@t.invalid', 'pw');
+    const stomp = socketClient();
+
+    await client.authorizeNotificationSocket(stomp);
+
+    expect(stomp.connectHeaders).toEqual({ Authorization: `Bearer ${token}` });
+    expect(stomp.deactivate).not.toHaveBeenCalled();
+    expect(countOf('/api/auth/refresh')).toBe(0);
+  });
+
+  test('재연결 때 토큰 만료가 가까우면 먼저 재발급한 토큰으로 연결한다', async () => {
+    const expiring = jwt({ role: 'ROLE_USER', exp: inSeconds(5) });
+    const renewed = jwt({ role: 'ROLE_USER', exp: inSeconds(3600) });
+    mockServer({
+      '/api/auth/login': () => json(200, { accessToken: expiring }),
+      '/api/auth/refresh': () => json(200, { accessToken: renewed }),
+    });
+    await client.login('a@t.invalid', 'pw');
+    const stomp = socketClient();
+
+    await client.authorizeNotificationSocket(stomp);
+
+    expect(countOf('/api/auth/refresh')).toBe(1);
+    expect(stomp.connectHeaders).toEqual({ Authorization: `Bearer ${renewed}` });
+  });
+
+  test('로그인 세션이 없으면 연결을 멈추고 거부될 CONNECT를 보내지 않는다', async () => {
+    mockServer({ '/api/auth/refresh': () => json(401) });
+    const stomp = socketClient();
+
+    await client.authorizeNotificationSocket(stomp);
+
+    expect(stomp.deactivate).toHaveBeenCalledTimes(1);
+    expect(stomp.connectHeaders).toEqual({});
+  });
+});
