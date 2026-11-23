@@ -28,6 +28,7 @@ public class PaymentController {
 
     @Operation(summary = "결제 내역 생성", description = "아임포트 결제 UID와 주문 ID를 받아 결제를 검증하고 저장합니다.\n\n결제 금액 위변조 검증을 포함합니다.")
     @ApiResponses(value = {
+            @ApiResponse(responseCode = "404", description = "본인 소유가 아니거나 없는 데이터 (RESOURCE_NOT_FOUND)", content = @Content),
             @ApiResponse(
                     responseCode = "201",
                     description = "결제 생성 및 검증 성공",
@@ -48,6 +49,7 @@ public class PaymentController {
 
     @Operation(summary = "결제 내역 조회", description = "결제 ID를 통해 특정 결제 내역의 상세 정보를 조회합니다.")
     @ApiResponses(value = {
+            @ApiResponse(responseCode = "404", description = "본인 소유가 아니거나 없는 데이터 (RESOURCE_NOT_FOUND)", content = @Content),
             @ApiResponse(
                     responseCode = "200",
                     description = "결제 내역 조회 성공",

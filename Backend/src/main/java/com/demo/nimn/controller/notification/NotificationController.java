@@ -51,6 +51,7 @@ public class NotificationController {
 
     @Operation(summary = "알림 읽음 처리", description = "알림 ID를 보내면 해당 알림을 읽음 처리")
     @ApiResponses(value = {
+            @ApiResponse(responseCode = "404", description = "본인 소유가 아니거나 없는 데이터 (RESOURCE_NOT_FOUND)", content = @Content),
             @ApiResponse(
                     responseCode = "200",
                     description = "알림 읽은 처리 성공",

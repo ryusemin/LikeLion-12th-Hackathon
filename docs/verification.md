@@ -160,3 +160,15 @@ ALTER TABLE t_daily_diet MODIFY user_email VARCHAR(254);
 - 독립 리뷰(superpowers `requesting-code-review`, 작업 맥락 없이 diff·이슈 기준만 전달): 분류·구조·프론트 호환성은 맞다는 평가와 함께 Critical 1건을 받았다. 관리자 규칙을 `GET`에만 걸어 두면 Spring MVC가 HEAD를 GET 핸들러로 실행하므로 일반 회원이 HEAD로 우회할 수 있었다(`/api/notification/test`는 알림 저장·푸시까지 실행). 테스트로 재현(일반 회원 `HEAD /api/users/all` 200)한 뒤, 경로 전체가 관리자용인 규칙은 메서드 없이 지정해 고쳤다. 리뷰가 지적한 누락 검사(HEAD 우회, 이미지 업로드·수정 403, 잘못된 토큰으로 공개 API 호출 시 401 `INVALID_ACCESS_TOKEN`, 관리자 변경 API 통과)를 추가해 dev·prod 각 11개가 되었다. JDK 17 컨테이너에서 `./gradlew test bootJar` 종료 코드 0, 백엔드 테스트 65개 통과. 수정 후 Docker 백엔드를 다시 빌드해 실제 HEAD 요청을 확인하지는 않았다(MockMvc가 실제 SecurityFilterChain으로 확인).
 - 리뷰가 함께 지적했지만 이번 범위 밖으로 둔 것: 공개 API인 `/api/review/summary`가 리뷰 작성자 이메일을 마스킹 없이 반환한다(이전부터 공개였고, 프론트는 화면에서만 가린다). 비로그인 사용자가 회원 이메일을 수집할 수 있으므로 #26에서 다룬다.
 - 미확인·범위 밖: 본인 데이터 여부(소유자) 검증은 #8, WebSocket CONNECT 인증은 #10이다. 회원 API는 여전히 요청의 이메일 파라미터로 대상을 고르므로 로그인한 회원이 다른 회원 데이터를 다룰 수 있다(#8). `JwtAuthorizationFilter`의 `WHITELIST`에 지금 쓰지 않는 경로(`/api/users/login` 등)가 남아 있다. 비로그인 화면에서 여러 컴포넌트가 `/api/users`를 각각 호출해 401이 여러 번 기록되는 기존 동작은 바꾸지 않았다. Playwright 브라우저 검사는 실행하지 않았다(프론트 코드 변경 없음).
+
+## 데이터 소유자 검증 (#8, 2026-11-23)
+
+- 범위: 로그인한 회원이 요청에 다른 회원의 이메일이나 데이터 ID를 넣어 조회·변경하지 못하게 했다.
+  - 요청 값 대신 Principal(`@AuthenticationPrincipal`)로 대상 회원을 정한다: `PUT /api/users`, `PUT /api/users/password`, `POST /api/diet/daily/read`, `POST /api/diet/weekly/create`(주간·일별·음식 선택의 소유자 모두), `GET /api/diet/weekly/read`, `GET /api/notification/all`, `PATCH /api/notification`, `GET /api/notification`, `POST /api/order`, `GET /api/payment`, `GET /api/review/daily`. 요청에 남아 있는 이메일 값은 무시한다.
+  - ID로 접근하는 데이터는 서비스에서 소유자를 확인하고, 남의 데이터와 없는 데이터 모두 404 `RESOURCE_NOT_FOUND`로 답한다(존재 여부를 드러내지 않음): 음식 선택 조회, 알림 읽음, 결제 단건 조회, 하루 리뷰 수정, 주문할 주간 식단, 결제할 주문. 결제는 아임포트 조회 전에 확인한다.
+  - API 계약 변경: 주간 식단 조회 경로가 `/api/diet/weekly/read/{userEmail}`에서 `/api/diet/weekly/read`로 바뀌었고 호출부(`WeeklyFoodMenu.jsx`)를 함께 고쳤다. 해당 엔드포인트의 Swagger에 404 응답을 추가했다.
+  - 제외: 관리자 경로(#7), WebSocket(#10), 결제 정합성(#12), 공개 API(#26·#28).
+- 테스트: `ResourceOwnershipTest` 17개(dev 프로필, 실제 SecurityFilterChain·MockMvc·H2). 회원 A의 토큰으로 B의 이메일·ID를 넣었을 때 B 데이터가 응답에 없고 바뀌지 않는지, A 본인 데이터는 처리되는지 확인한다. 수정 전 코드에서 16개가 실패했다(예: A가 B의 현재 비밀번호로 B의 비밀번호 변경 성공, B의 결제·리뷰 조회·수정 성공, B 이메일로 주문·식단 생성). A가 자기 알림을 읽음 처리하는 1개는 수정 전후 모두 통과한다.
+- Windows 로컬 JDK 17: `gradlew test bootJar` 종료 코드 0, 백엔드 테스트 82개 통과. `scripts/verify.ps1` Frontend·Browser 종료 코드 0(lint 오류 0개·경고 31개, Jest 17개, Chromium 3개).
+- 독립 리뷰(superpowers `requesting-code-review`, 작업 맥락 없이 diff·이슈 기준만 전달): Critical·Important 없음. 모든 컨트롤러에서 요청 이메일로 대상을 정하는 회원 API가 남지 않았고(관리자 전용 `/api/notification/test` 제외), ID 기반 API의 404 정책이 일관된다는 평가였다. Minor 지적 중 ID 기반 엔드포인트의 Swagger 404 누락은 반영했다.
+- 미확인·범위 밖: Docker 실제 서버·브라우저 로그인 흐름으로는 확인하지 않았다(MockMvc가 실제 필터 체인으로 확인). 프론트는 서버가 무시하는 `userEmail`·`purchaser` 값을 여전히 보내고, 요청 DTO의 해당 필드도 Swagger 스키마에 남아 있다. 결제 시 PG 거래(`imp_uid`)와 내부 주문의 대조는 #12에서 다룬다.

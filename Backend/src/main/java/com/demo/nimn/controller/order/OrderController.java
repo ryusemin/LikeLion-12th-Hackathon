@@ -30,6 +30,7 @@ public class OrderController {
 
     @Operation(summary = "주문 생성", description = "새로운 주문을 생성합니다.\n\n주문 생성 시 자동으로 총 금액이 계산되며 주문 ID가 자동 생성됩니다.\n\n생성된 주문으로 결제를 진행할 수 있습니다.")
     @ApiResponses(value = {
+            @ApiResponse(responseCode = "404", description = "본인 소유가 아니거나 없는 데이터 (RESOURCE_NOT_FOUND)", content = @Content),
             @ApiResponse(
                     responseCode = "201",
                     description = "주문 생성 성공",

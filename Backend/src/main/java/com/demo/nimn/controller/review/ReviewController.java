@@ -114,6 +114,7 @@ public class ReviewController {
 
     @Operation(summary = "하루 식단 리뷰 수정", description = "하루 식단의 개별 리뷰들을 수정합니다.\n\n평점과 코멘트를 업데이트하면 음식별 종합 리뷰도 자동으로 갱신됩니다.\n\n평점은 필수로 작성해야 하고 코멘트는 작성하지 않아도 됩니다.")
     @ApiResponses(value = {
+            @ApiResponse(responseCode = "404", description = "본인 소유가 아니거나 없는 데이터 (RESOURCE_NOT_FOUND)", content = @Content),
             @ApiResponse(
                     responseCode = "200",
                     description = "하루 식단 리뷰 수정 성공",
