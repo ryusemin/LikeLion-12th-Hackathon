@@ -103,18 +103,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDetails updateUser(UserDetails user) {
-        Users userEntity = findUserByEmail(user.getEmail());
+    public UserDetails updateUser(String email, UserDetails user) {
+        // 수정 대상은 요청 본문의 이메일이 아니라 로그인한 회원이다 (#8).
+        Users userEntity = findUserByEmail(email);
 
         userEntity.updateUser(user);
         userRepository.save(userEntity);
-        return user;
+        return getUserDetail(email);
     }
 
     @Transactional
     @Override
-    public UserDTO changePassword(PasswordChangeDTO passwordChangeDto) {
-        String email = passwordChangeDto.getEmail();
+    public UserDTO changePassword(String email, PasswordChangeDTO passwordChangeDto) {
         String oldPassword = passwordChangeDto.getOldPassword();
         String newPassword = passwordChangeDto.getNewPassword();
 

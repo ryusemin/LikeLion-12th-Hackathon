@@ -7,7 +7,7 @@ import com.demo.nimn.enums.NotificationType;
 import java.util.List;
 
 public interface NotificationService {
-    NotificationDTO markAsRead(Long notificationId);
+    NotificationDTO markAsRead(Long notificationId, String ownerEmail);
     NotificationCountDTO markAllAsRead(String userEmail);
     NotificationCountDTO countUnreadNotifications(String userEmail);
     List<NotificationDTO> getAllNotificationsByUserEmail(String userEmail);

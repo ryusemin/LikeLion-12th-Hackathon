@@ -7,7 +7,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
  * dev·prod가 함께 쓰는 API 접근 규칙 (#7).
  * 컨트롤러 경로에는 WebConfig가 /api 접두사를 붙이므로 규칙도 /api를 포함한 실제 요청 경로로 적는다.
  * 위에서부터 처음 맞는 규칙을 적용하므로, 관리자 규칙을 공개 규칙보다 먼저 둔다.
- * 여기서는 로그인 여부와 역할만 판단한다. 본인 데이터인지(소유자) 검증은 #8에서 다룬다.
+ * 여기서는 로그인 여부와 역할만 판단한다. 본인 데이터인지(소유자) 검증은 컨트롤러의 Principal과 서비스에서 한다 (#8).
  */
 final class ApiAccessRules {
 

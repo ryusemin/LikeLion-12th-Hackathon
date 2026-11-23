@@ -1,5 +1,7 @@
 package com.demo.nimn.controller.notification;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.demo.nimn.dto.auth.CustomUserDetails;
 import com.demo.nimn.dto.notification.NotificationDTO;
 import com.demo.nimn.dto.notification.response.NotificationCountDTO;
 import com.demo.nimn.enums.NotificationType;
@@ -43,13 +45,13 @@ public class NotificationController {
             )
     })
     @GetMapping("/all")
-    public ResponseEntity<List<NotificationDTO>> getAllNotifications(@Parameter(description = "유저 이메일", example = "user@example.com")
-                                                                        @RequestParam String userEmail) {
-        return  ResponseEntity.ok(notificationService.getAllNotificationsByUserEmail(userEmail));
+    public ResponseEntity<List<NotificationDTO>> getAllNotifications(@AuthenticationPrincipal CustomUserDetails principal) {
+        return  ResponseEntity.ok(notificationService.getAllNotificationsByUserEmail(principal.getUsername()));
     }
 
     @Operation(summary = "알림 읽음 처리", description = "알림 ID를 보내면 해당 알림을 읽음 처리")
     @ApiResponses(value = {
+            @ApiResponse(responseCode = "404", description = "본인 소유가 아니거나 없는 데이터 (RESOURCE_NOT_FOUND)", content = @Content),
             @ApiResponse(
                     responseCode = "200",
                     description = "알림 읽은 처리 성공",
@@ -67,12 +69,13 @@ public class NotificationController {
             )
     })
     @PatchMapping("/{notificationId}")
-    public ResponseEntity<NotificationDTO> markAsRead(@Parameter(description = "알림 ID", example = "1")
+    public ResponseEntity<NotificationDTO> markAsRead(@AuthenticationPrincipal CustomUserDetails principal,
+                                                      @Parameter(description = "알림 ID", example = "1")
                                                         @PathVariable Long notificationId) {
-        return  ResponseEntity.ok(notificationService.markAsRead(notificationId));
+        return  ResponseEntity.ok(notificationService.markAsRead(notificationId, principal.getUsername()));
     }
 
-    @Operation(summary = "모든 알림 읽음 처리", description = "이메일을 보내면 해당 사용자의 모든 알림을 읽음 처리")
+    @Operation(summary = "모든 알림 읽음 처리", description = "로그인한 사용자의 모든 알림을 읽음 처리")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -91,12 +94,11 @@ public class NotificationController {
             )
     })
     @PatchMapping
-    public ResponseEntity<NotificationCountDTO> markAllAsRead(@Parameter(description = "유저 이메일", example = "user@example.com")
-                                                                @RequestParam String userEmail) {
-        return  ResponseEntity.ok(notificationService.markAllAsRead(userEmail));
+    public ResponseEntity<NotificationCountDTO> markAllAsRead(@AuthenticationPrincipal CustomUserDetails principal) {
+        return  ResponseEntity.ok(notificationService.markAllAsRead(principal.getUsername()));
     }
 
-    @Operation(summary = "안읽은 알림 갯수 조회", description = "이메일을 보내면 해당 사용자의 안읽은 알림 갯수를 조회")
+    @Operation(summary = "안읽은 알림 갯수 조회", description = "로그인한 사용자의 안읽은 알림 갯수를 조회")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -115,9 +117,8 @@ public class NotificationController {
             )
     })
     @GetMapping
-    public ResponseEntity<NotificationCountDTO> countUnreadNotifications(@Parameter(description = "유저 이메일", example = "user@example.com")
-                                                                            @RequestParam String userEmail) {
-        return ResponseEntity.ok(notificationService.countUnreadNotifications(userEmail));
+    public ResponseEntity<NotificationCountDTO> countUnreadNotifications(@AuthenticationPrincipal CustomUserDetails principal) {
+        return ResponseEntity.ok(notificationService.countUnreadNotifications(principal.getUsername()));
     }
 
     @Operation(summary = "테스트용")

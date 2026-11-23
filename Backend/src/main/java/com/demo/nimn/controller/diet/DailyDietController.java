@@ -1,5 +1,7 @@
 package com.demo.nimn.controller.diet;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.demo.nimn.dto.auth.CustomUserDetails;
 import com.demo.nimn.dto.diet.DailyDietDTO;
 import com.demo.nimn.dto.diet.GetDailyDTO;
 import com.demo.nimn.service.diet.DietService;
@@ -35,8 +37,9 @@ public class DailyDietController {
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content())
     })
     @PostMapping("/read")
-    public ResponseEntity<List<DailyDietDTO>> getDailyDietsByUserEmailAndDate(@RequestBody GetDailyDTO getDailyDTO) {
-        List<DailyDietDTO> dailyDiets = dietService.getByUserEmailAndDate(getDailyDTO.getUserEmail(), getDailyDTO.getDate());
+    public ResponseEntity<List<DailyDietDTO>> getDailyDietsByUserEmailAndDate(@AuthenticationPrincipal CustomUserDetails principal,
+                                                                              @RequestBody GetDailyDTO getDailyDTO) {
+        List<DailyDietDTO> dailyDiets = dietService.getByUserEmailAndDate(principal.getUsername(), getDailyDTO.getDate());
         return ResponseEntity.ok(dailyDiets);
     }
 

@@ -7,9 +7,9 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface PaymentService {
-    PaymentDTO createImportPayment(PaymentRequestDTO request);
+    PaymentDTO createImportPayment(PaymentRequestDTO request, String ownerEmail);
     PaymentDTO createPayment(Order order, String paymentUid);
-    PaymentDTO getPaymentByPaymentId(String paymentId);
+    PaymentDTO getPaymentByPaymentId(String paymentId, String ownerEmail);
     List<PaymentDTO> getPaymentByPurchaser(String purchaser);
     List<String> getUnpaidPurchasersInWeek(LocalDate targetDate);
     List<String> getPurchasersThisWeek();

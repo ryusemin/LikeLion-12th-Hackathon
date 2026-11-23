@@ -1,5 +1,7 @@
 package com.demo.nimn.service.order;
 
+import com.demo.nimn.exception.ErrorCode;
+import com.demo.nimn.exception.CustomException;
 import com.demo.nimn.dto.order.OrderDTO;
 import com.demo.nimn.entity.diet.DailyDiet;
 import com.demo.nimn.entity.diet.FoodSelection;
@@ -25,8 +27,10 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderDTO createOrder(OrderDTO orderDTO) {
+        // 주문할 수 있는 식단은 주문자 본인의 식단뿐이다 (#8).
         WeeklyDiet weeklyDiet = weeklyDietRepository.findById(orderDTO.getWeeklyDietId())
-                .orElseThrow(() -> new RuntimeException("WeeklyDiet not found: " + orderDTO.getWeeklyDietId()));
+                .filter(diet -> orderDTO.getPurchaser().equals(diet.getUserEmail()))
+                .orElseThrow(() -> new CustomException(ErrorCode.RESOURCE_NOT_FOUND));
 
         orderDTO.setTotalPrice(calculateTotalPrice(weeklyDiet));
 
@@ -54,7 +58,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Order getOrder(String orderId) {
-        return orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
+        return orderRepository.findById(orderId).orElseThrow(() -> new CustomException(ErrorCode.RESOURCE_NOT_FOUND));
     }
 
     @Override

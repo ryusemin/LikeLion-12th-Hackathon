@@ -89,7 +89,13 @@ public class DietServiceImpl implements DietService {
     // 새로운 주간 식단 생성
     @Override
     @Transactional
-    public WeeklyDietDTO createWeeklyDiet(CreateWeeklyDietDTO weeklyDietDTO) {
+    public WeeklyDietDTO createWeeklyDiet(String ownerEmail, CreateWeeklyDietDTO weeklyDietDTO) {
+        // 요청 본문의 이메일 대신 로그인한 회원을 주간·일별·음식 선택 모두의 소유자로 정한다 (#8).
+        weeklyDietDTO.setUserEmail(ownerEmail);
+        weeklyDietDTO.getDailyDiets().forEach(daily -> {
+            daily.setUserEmail(ownerEmail);
+            daily.getFoodSelections().forEach(selection -> selection.setUserEmail(ownerEmail));
+        });
         if (weeklyDietRepository.existsByCurrentWeeklyMealPlan(weeklyDietDTO.getStartDate(), weeklyDietDTO.getUserEmail())) {
             return null;
         }

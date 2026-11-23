@@ -1,5 +1,7 @@
 package com.demo.nimn.controller.diet;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.demo.nimn.dto.auth.CustomUserDetails;
 import com.demo.nimn.dto.diet.FoodSelectionDTO;
 import com.demo.nimn.service.diet.FoodSelectionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,14 +27,16 @@ public class FoodSelectionController {
     // 선택한 음식 조회
     @Operation(summary = "선택한 음식 조회", description = "유저의 선택한 음식의 상세정보 조회")
     @ApiResponses(value = {
+            @ApiResponse(responseCode = "404", description = "본인 소유가 아니거나 없는 데이터 (RESOURCE_NOT_FOUND)", content = @Content),
             @ApiResponse(responseCode = "200", description = "성공"),
             @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content()),
             @ApiResponse(responseCode = "403", description = "권한 없음", content = @Content()),
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content())
     })
     @GetMapping("read/{mealSelectionId}")
-    public ResponseEntity<FoodSelectionDTO> getMealSelectionById(@PathVariable Long mealSelectionId) {
-        FoodSelectionDTO foodSelectionDTO = foodSelectionService.getById(mealSelectionId);
+    public ResponseEntity<FoodSelectionDTO> getMealSelectionById(@AuthenticationPrincipal CustomUserDetails principal,
+                                                                 @PathVariable Long mealSelectionId) {
+        FoodSelectionDTO foodSelectionDTO = foodSelectionService.getById(mealSelectionId, principal.getUsername());
         return ResponseEntity.ok(foodSelectionDTO);
     }
 }

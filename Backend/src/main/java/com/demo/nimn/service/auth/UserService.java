@@ -16,9 +16,9 @@ public interface UserService {
 
     public UserDetails getUserDetail(String email);
 
-    public UserDetails updateUser(UserDetails user);
+    public UserDetails updateUser(String email, UserDetails user);
 
-    public UserDTO changePassword(PasswordChangeDTO passwordChangeDto);
+    public UserDTO changePassword(String email, PasswordChangeDTO passwordChangeDto);
 
     public UserDTO updatePassword(PasswordChangeDTO passwordChangeDto);
 

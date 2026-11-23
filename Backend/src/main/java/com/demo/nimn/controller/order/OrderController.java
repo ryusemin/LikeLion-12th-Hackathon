@@ -1,5 +1,8 @@
 package com.demo.nimn.controller.order;
 
+import com.demo.nimn.exception.CustomException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.demo.nimn.dto.auth.CustomUserDetails;
 import com.demo.nimn.dto.order.OrderDTO;
 import com.demo.nimn.dto.order.OrderRequestDTO;
 import com.demo.nimn.service.order.OrderService;
@@ -27,6 +30,7 @@ public class OrderController {
 
     @Operation(summary = "주문 생성", description = "새로운 주문을 생성합니다.\n\n주문 생성 시 자동으로 총 금액이 계산되며 주문 ID가 자동 생성됩니다.\n\n생성된 주문으로 결제를 진행할 수 있습니다.")
     @ApiResponses(value = {
+            @ApiResponse(responseCode = "404", description = "본인 소유가 아니거나 없는 데이터 (RESOURCE_NOT_FOUND)", content = @Content),
             @ApiResponse(
                     responseCode = "201",
                     description = "주문 생성 성공",
@@ -39,15 +43,18 @@ public class OrderController {
             )
     })
     @PostMapping("")
-    public ResponseEntity<OrderDTO> createOrder(@RequestBody OrderRequestDTO orderRequestDTO) {
+    public ResponseEntity<OrderDTO> createOrder(@AuthenticationPrincipal CustomUserDetails principal,
+                                                @RequestBody OrderRequestDTO orderRequestDTO) {
         try {
             OrderDTO orderDTO = OrderDTO.builder()
-                    .purchaser(orderRequestDTO.getPurchaser())
+                    .purchaser(principal.getUsername())
                     .weeklyDietId(orderRequestDTO.getWeeklyDietId())
                     .build();
 
             OrderDTO created = orderService.createOrder(orderDTO);
             return ResponseEntity.status(201).body(created);
+        } catch (CustomException e) {
+            throw e;
         } catch (Exception e) {
             logger.error("Order creation failed", e);
             throw new RuntimeException("주문 생성에 실패했습니다: " + e.getMessage());

@@ -1,5 +1,7 @@
 package com.demo.nimn.service.notification;
 
+import com.demo.nimn.exception.ErrorCode;
+import com.demo.nimn.exception.CustomException;
 import com.demo.nimn.dto.diet.DailyDietDTO;
 import com.demo.nimn.dto.diet.FoodSelectionDTO;
 import com.demo.nimn.dto.notification.NotificationDTO;
@@ -205,8 +207,10 @@ public class NotificationServiceImpl implements NotificationService {
 
     // 확인으로 전환
     @Override
-    public NotificationDTO markAsRead(Long notificationId) {
-        Notification notification = notificationRepository.findById(notificationId).orElseThrow(() -> new RuntimeException("Notification Not Found"));
+    public NotificationDTO markAsRead(Long notificationId, String ownerEmail) {
+        Notification notification = notificationRepository.findById(notificationId)
+                .filter(found -> ownerEmail.equals(found.getUserEmail()))
+                .orElseThrow(() -> new CustomException(ErrorCode.RESOURCE_NOT_FOUND));
         notification.setCheck(Boolean.TRUE);
 
         return notificationRepository.save(notification).toNotificationDTO(0);

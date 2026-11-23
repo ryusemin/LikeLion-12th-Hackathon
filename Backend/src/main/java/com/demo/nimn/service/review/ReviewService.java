@@ -19,5 +19,5 @@ public interface ReviewService {
     void createWeeklyDietReviews(WeeklyDietDTO weeklyDietDTO);
     DailyDietReviewDTO getDailyDietReviewByUserAndDate(String userEmail, LocalDate reviewDate);
     List<DailyDietReviewDTO> getDailyDietReviewsByDate(LocalDate reviewDate);
-    DailyDietReviewDTO updateDailyDietReview(Long id, List<ReviewDTO> reviews);
+    DailyDietReviewDTO updateDailyDietReview(Long id, String ownerEmail, List<ReviewDTO> reviews);
 }

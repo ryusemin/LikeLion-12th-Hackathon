@@ -1,5 +1,6 @@
 package com.demo.nimn.controller.auth;
 
+import com.demo.nimn.dto.auth.CustomUserDetails;
 import com.demo.nimn.dto.auth.*;
 import com.demo.nimn.exception.CustomException;
 import com.demo.nimn.service.auth.UserService;
@@ -130,8 +131,9 @@ public class UserController {
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content())
     })
     @PutMapping
-    public ResponseEntity<UserDetails> updateUser(@RequestBody UserDetails user){
-        return ResponseEntity.ok().body(userService.updateUser(user));
+    public ResponseEntity<UserDetails> updateUser(@AuthenticationPrincipal CustomUserDetails principal,
+                                                  @RequestBody UserDetails user){
+        return ResponseEntity.ok().body(userService.updateUser(principal.getUsername(), user));
     }
 
     @Operation(summary = "로그인 상태 비밀번호 변경", description = "유저의 비밀번호를 변경한다.", security = @SecurityRequirement(name = "accessToken"))
@@ -142,8 +144,9 @@ public class UserController {
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content())
     })
     @PutMapping("/password")
-    public ResponseEntity<UserDTO> updatePassword(@RequestBody PasswordChangeDTO passwordChangeDTO){
-        UserDTO user = userService.changePassword(passwordChangeDTO);
+    public ResponseEntity<UserDTO> updatePassword(@AuthenticationPrincipal CustomUserDetails principal,
+                                                  @RequestBody PasswordChangeDTO passwordChangeDTO){
+        UserDTO user = userService.changePassword(principal.getUsername(), passwordChangeDTO);
         if(user.getPassword() == null){
             return ResponseEntity.ok().body(user);
         } else {
