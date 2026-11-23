@@ -310,7 +310,8 @@ const MainPage = ({ onNotificationCountChange }) => {
 
         return () => {
           clearTimeout(timer);
-          if (stompClientRef.current && stompClientRef.current.connected) {
+          // 토큰을 기다리는 중(아직 connected가 아님)인 클라이언트도 멈춰야 화면을 떠난 뒤 연결이 열리지 않는다.
+          if (stompClientRef.current) {
             stompClientRef.current.deactivate();
           }
         };

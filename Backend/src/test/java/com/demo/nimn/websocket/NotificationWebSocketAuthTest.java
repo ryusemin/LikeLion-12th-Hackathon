@@ -206,6 +206,7 @@ class NotificationWebSocketAuthTest {
         Connection a = connect(null, bearer(tokenA), null);
         a.session.subscribe("/topic/notification/" + B, new TextFrameHandler(new LinkedBlockingQueue<>()));
 
+        assertThat(a.handler.error.get(WAIT_SECONDS, TimeUnit.SECONDS)).isEqualTo("구독할 수 없는 주소입니다.");
         assertSessionClosed(a);
     }
 
@@ -217,6 +218,7 @@ class NotificationWebSocketAuthTest {
 
         a.session.send("/user/" + B + "/queue/notification", "fake".getBytes(StandardCharsets.UTF_8));
 
+        assertThat(a.handler.error.get(WAIT_SECONDS, TimeUnit.SECONDS)).isEqualTo("메시지를 보낼 수 없습니다.");
         assertSessionClosed(a);
         assertThat(inboxB.poll(QUIET_MILLIS, TimeUnit.MILLISECONDS)).isNull();
     }
@@ -286,19 +288,25 @@ class NotificationWebSocketAuthTest {
      */
     private BlockingQueue<String> subscribe(StompSession session, String owner) throws Exception {
         BlockingQueue<String> inbox = new LinkedBlockingQueue<>();
-        session.subscribe(USER_QUEUE, new TextFrameHandler(inbox));
+        // 확인용 메시지는 구독마다 다른 표식을 달고, 몇 개가 늦게 오더라도 inbox에 넣지 않는다.
+        String probe = "subscription-probe-" + java.util.UUID.randomUUID();
+        CompletableFuture<Void> registered = new CompletableFuture<>();
+        session.subscribe(USER_QUEUE, new TextFrameHandler(inbox, probe, registered));
         long deadline = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(WAIT_SECONDS);
-        while (inbox.poll(100, TimeUnit.MILLISECONDS) == null) {
+        while (!registered.isDone()) {
             if (System.currentTimeMillis() > deadline) fail("subscription was not registered");
-            messagingTemplate.convertAndSendToUser(owner, "/queue/notification", "subscription-probe");
+            messagingTemplate.convertAndSendToUser(owner, "/queue/notification", probe);
+            try {
+                registered.get(100, TimeUnit.MILLISECONDS);
+            } catch (java.util.concurrent.TimeoutException notYet) {
+                // 아직 구독이 등록되지 않았다. 다시 보낸다.
+            }
         }
-        Thread.sleep(200); // 늦게 도착한 확인용 메시지까지 받은 뒤 비운다.
-        inbox.clear();
         return inbox;
     }
 
     /** 이메일·로그인 헤더를 보내도 서버가 연결을 받아들이지 않아야 한다(STOMP ERROR 후 종료). */
-    private void assertConnectRejected(StompHeaders connectHeaders) throws InterruptedException {
+    private void assertConnectRejected(StompHeaders connectHeaders) throws Exception {
         // 예전 프론트처럼 연결 주소에도 이메일을 붙인다.
         String email = connectHeaders.getFirst("userEmail");
         RecordingHandler handler = new RecordingHandler();
@@ -308,11 +316,13 @@ class NotificationWebSocketAuthTest {
             StompSession session = future.get(WAIT_SECONDS, TimeUnit.SECONDS);
             openSessions.add(session);
             assertSessionClosed(new Connection(session, handler));
-        } catch (java.util.concurrent.ExecutionException rejected) {
-            // 연결 자체가 실패하면 거부된 것이다.
+        } catch (java.util.concurrent.ExecutionException closedAfterError) {
+            // ERROR 프레임 뒤 연결이 닫히면 연결 시도가 실패로 끝난다. 아래에서 ERROR를 받았는지 확인한다.
         } catch (InterruptedException | java.util.concurrent.TimeoutException e) {
             fail("connection attempt did not finish", e);
         }
+        // HTTP 오류·핸드셰이크 실패 같은 전송 장애는 인증 거부로 인정하지 않는다. 서버가 STOMP ERROR로 거부해야 한다.
+        assertThat(handler.error.get(WAIT_SECONDS, TimeUnit.SECONDS)).isEqualTo("로그인이 필요합니다.");
         assertThat(sessionManageService.isUserConnected(A)).isFalse();
     }
 
@@ -327,9 +337,17 @@ class NotificationWebSocketAuthTest {
 
     private static final class TextFrameHandler implements StompFrameHandler {
         private final BlockingQueue<String> inbox;
+        private final String probe;
+        private final CompletableFuture<Void> probeSeen;
 
         private TextFrameHandler(BlockingQueue<String> inbox) {
+            this(inbox, null, new CompletableFuture<>());
+        }
+
+        private TextFrameHandler(BlockingQueue<String> inbox, String probe, CompletableFuture<Void> probeSeen) {
             this.inbox = inbox;
+            this.probe = probe;
+            this.probeSeen = probeSeen;
         }
 
         @NonNull
@@ -340,11 +358,31 @@ class NotificationWebSocketAuthTest {
 
         @Override
         public void handleFrame(@NonNull StompHeaders headers, @Nullable Object payload) {
-            inbox.add(payload == null ? "" : new String((byte[]) payload, StandardCharsets.UTF_8));
+            String text = payload == null ? "" : new String((byte[]) payload, StandardCharsets.UTF_8);
+            if (probe != null && text.contains(probe)) {
+                probeSeen.complete(null);
+                return;
+            }
+            inbox.add(text);
         }
     }
 
     private static final class RecordingHandler extends StompSessionHandlerAdapter {
+        /** 서버가 보낸 STOMP ERROR 프레임의 message 헤더. */
+        private final CompletableFuture<String> error = new CompletableFuture<>();
+
+        @NonNull
+        @Override
+        public Type getPayloadType(@NonNull StompHeaders headers) {
+            return byte[].class;
+        }
+
+        @Override
+        public void handleFrame(@NonNull StompHeaders headers, @Nullable Object payload) {
+            // 세션 핸들러로 오는 프레임은 ERROR뿐이다(구독 메시지는 구독별 핸들러로 간다).
+            error.complete(String.valueOf(headers.getFirst("message")));
+        }
+
         @Override
         public void handleException(@NonNull StompSession session, @Nullable StompCommand command,
                                     @NonNull StompHeaders headers, @NonNull byte[] payload, @NonNull Throwable exception) {
