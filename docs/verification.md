@@ -172,3 +172,13 @@ ALTER TABLE t_daily_diet MODIFY user_email VARCHAR(254);
 - Windows 로컬 JDK 17: `gradlew test bootJar` 종료 코드 0, 백엔드 테스트 82개 통과. `scripts/verify.ps1` Frontend·Browser 종료 코드 0(lint 오류 0개·경고 31개, Jest 17개, Chromium 3개).
 - 독립 리뷰(superpowers `requesting-code-review`, 작업 맥락 없이 diff·이슈 기준만 전달): Critical·Important 없음. 모든 컨트롤러에서 요청 이메일로 대상을 정하는 회원 API가 남지 않았고(관리자 전용 `/api/notification/test` 제외), ID 기반 API의 404 정책이 일관된다는 평가였다. Minor 지적 중 ID 기반 엔드포인트의 Swagger 404 누락은 반영했다.
 - 미확인·범위 밖: Docker 실제 서버·브라우저 로그인 흐름으로는 확인하지 않았다(MockMvc가 실제 필터 체인으로 확인). 프론트는 서버가 무시하는 `userEmail`·`purchaser` 값을 여전히 보내고, 요청 DTO의 해당 필드도 Swagger 스키마에 남아 있다. 결제 시 PG 거래(`imp_uid`)와 내부 주문의 대조는 #12에서 다룬다.
+
+## 공개 리뷰 요약의 작성자 이메일 가림 (#26, 2026-11-23)
+
+- 범위: 비로그인 `GET /api/review/summary`, `/api/review/summary/sort`, `/api/review/summary/{foodId}` 응답의 `reviews[].userEmail`을 서버에서 아이디 앞 최대 3글자 + `***`로 바꾸고 도메인을 버린다(아이디가 짧으면 남기는 글자를 줄인다: `abc` → `ab***`, `a` → `***`). 본인 하루 리뷰(`/api/review/daily`)는 Principal 기준이라 그대로 둔다. 프론트(`AllDietPage.jsx`)는 서버 값을 그대로 표시한다.
+  - 함께 고친 기존 결함: `getReviewSummaryByFoodId`가 트랜잭션 안에서 orphanRemoval 컬렉션을 교체해 음식별 요약 조회가 500이었다. 같은 필터가 DTO 변환에 있어 교체 코드를 지웠다.
+  - 제외: 음식별 요약 조회가 GET인데 201을 반환하는 기존 계약은 바꾸지 않았다.
+- 테스트: `ReviewSummaryPrivacyTest` 3개(dev 프로필, 실제 SecurityFilterChain·MockMvc·H2, 비로그인 호출)는 응답에 원래 이메일·도메인이 없고 `rev***`가 있는지 확인한다. 수정 전 코드에서 3개 모두 실패했다(목록 2개는 전체 이메일 노출, 단건은 500). `ReviewEmailMaskTest`는 짧은 아이디·null 처리를 확인한다.
+- Windows 로컬 JDK 17: `gradlew test bootJar` 종료 코드 0, 백엔드 테스트 86개 통과. `scripts/verify.ps1 -Target Frontend` 종료 코드 0(lint 오류 0개·경고 31개, Jest 17개, 빌드 성공).
+- 독립 리뷰(superpowers `requesting-code-review`, diff·이슈 기준만 전달): Critical·Important 없음. 공개 경로 중 리뷰 작성자를 내보내는 곳은 요약 API뿐이고, 가림은 DTO에만 적용되어 엔티티를 바꾸지 않는다는 평가였다. Minor: 4글자 아이디는 3글자가 남는 등 가림 강도가 아이디 길이에 따라 다르다(현재 정책으로 유지).
+- 미확인·범위 밖: Docker 실제 서버·브라우저 화면은 확인하지 않았다. 주간 식단 생성 때 미작성 리뷰를 평점 1.0으로 저장해 공개 요약의 평균·목록에 섞이는 기존 문제(`ReviewServiceImpl.createWeeklyDietReviews`)는 별도 이슈로 다룬다.
